@@ -5,7 +5,8 @@ Changelog
 1.0a2 (unreleased)
 ------------------
 
-- Nothing changed yet.
+- Updated package description to better reflect its role as shared infrastructure.
+  [duchenean]
 
 
 1.0a1 (2026-04-03)

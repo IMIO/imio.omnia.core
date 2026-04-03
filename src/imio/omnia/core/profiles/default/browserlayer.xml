@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<layers>
+  <layer
+      name="imio.omnia.core"
+      interface="imio.omnia.core.interfaces.IImioOmniaCoreLayer"
+      />
+</layers>

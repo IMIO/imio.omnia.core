@@ -1,0 +1,19 @@
+<?xml version="1.0"?>
+<object
+  name="portal_controlpanel"
+  xmlns:i18n="http://xml.zope.org/namespaces/i18n"
+  i18n:domain="imio.omnia.core"
+  purge="False">
+  <configlet
+    title="Omnia"
+    action_id="imio.omnia.core"
+    appId="imio.omnia.core"
+    category="Products"
+    condition_expr=""
+    url_expr="string:${portal_url}/@@omnia-ai-settings"
+    icon_expr="string:omnia.picto.light"
+    visible="True"
+    i18n:attributes="title">
+    <permission>Manage portal</permission>
+  </configlet>
+</object>

@@ -1,0 +1,60 @@
+<configure
+  xmlns="http://namespaces.zope.org/zope"
+  xmlns:browser="http://namespaces.zope.org/browser"
+  xmlns:plone="http://namespaces.plone.org/plone"
+  i18n_domain="imio.omnia.core">
+
+  <!-- Set overrides folder for Just-a-Bunch-Of-Templates product -->
+  <include package="z3c.jbot" file="meta.zcml"/>
+  <browser:jbot
+    directory="overrides"
+    layer="imio.omnia.core.interfaces.IImioOmniaCoreLayer"
+  />
+
+  <!-- Publish static files -->
+  <plone:static
+    name="imio.omnia.core"
+    type="plone"
+    directory="static"
+  />
+
+  <browser:page
+    name="omnia-ai-settings"
+    for="Products.CMFPlone.interfaces.IPloneSiteRoot"
+    class=".controlpanel.OmniaCoreControlPanelView"
+    permission="cmf.ManagePortal"
+    layer="imio.omnia.core.interfaces.IImioOmniaCoreLayer"
+  />
+
+  <!-- Proxy: forward JS API requests to Omnia Core service -->
+  <browser:page
+    name="omnia-api"
+    for="*"
+    class=".proxy.OmniaProxyView"
+    permission="imio.omnia.core.AccessOmniaAPIProxy"
+    layer="imio.omnia.core.interfaces.IImioOmniaCoreLayer"
+  />
+
+  <!-- Proxy: forward AI assistant requests to OpenAI-compatible gateway (SSE streaming) -->
+  <browser:page
+    name="omnia-openai-api"
+    for="*"
+    class=".proxy.OmniaOpenAIProxyView"
+    permission="imio.omnia.core.AccessOmniaOpenAIProxy"
+    layer="imio.omnia.core.interfaces.IImioOmniaCoreLayer"
+  />
+
+  <browser:menu
+    id="omnia-ai-actions"
+    title="The 'actions' menu - allows the user to execute actions on an object"
+    class=".menu.OmniaActionsMenu"
+  />
+
+  <adapter
+    factory=".menu.OmniaActionsSubMenuItem"
+    provides="plone.app.contentmenu.interfaces.IContentMenuItem"
+    for="*
+         *"
+    name="plone.contentmenu.omnia.actions"
+  />
+</configure>

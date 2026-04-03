@@ -1,0 +1,117 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: imio.omnia.core\n"
+"POT-Creation-Date: 2026-03-23 00:00+0000\n"
+"PO-Revision-Date: 2026-03-23 00:00+0000\n"
+"Last-Translator: Antoine Duchêne <antoine.duchene@imio.be>\n"
+"Language-Team: French <fr@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+"Language-Code: fr\n"
+"Language-Name: French\n"
+"Preferred-Encodings: utf-8 latin1\n"
+"Domain: imio.omnia.core\n"
+
+#: ../browser/controlpanel.py:26
+msgid "Application ID"
+msgstr "Identifiant de l'application"
+
+#: ../configure.zcml:46
+msgid "Installs the imio.omnia.core add-on."
+msgstr "Installe le module imio.omnia.core."
+
+#: ../browser/controlpanel.py:38
+msgid "Expose @@omnia-api endpoint. Access is controlled by permissions."
+msgstr "Expose le point d'accès @@omnia-api. L'accès est contrôlé par des permissions."
+
+#: ../browser/controlpanel.py:35
+msgid "Enable Omnia API proxy"
+msgstr "Activer le proxy de l'API Omnia"
+
+#: ../browser/controlpanel.py:37
+msgid "Main Omnia settings"
+msgstr "Paramètres principaux d'Omnia"
+
+#: ../browser/controlpanel.py:16
+msgid "Omnia Core API URL"
+msgstr "URL de l'API Omnia Core"
+
+#: ../browser/controlpanel.py:21
+msgid "OpenAI API URL"
+msgstr "URL de l'API OpenAI"
+
+#: ../browser/controlpanel.py:26
+msgid "OpenAI API Key"
+msgstr "Clé API OpenAI"
+
+#: ../browser/controlpanel.py:27
+msgid "Optional Bearer token sent to the OpenAI-compatible API."
+msgstr "Token Bearer optionnel envoyé à l'API compatible OpenAI."
+
+#: ../browser/controlpanel.py:32
+msgid "OpenAI extra headers"
+msgstr "En-têtes supplémentaires OpenAI"
+
+#: ../browser/controlpanel.py:33
+msgid "Additional HTTP headers sent to the OpenAI-compatible API."
+msgstr "En-têtes HTTP supplémentaires envoyés à l'API compatible OpenAI."
+
+#: ../browser/controlpanel.py:34
+msgid "Header name"
+msgstr "Nom de l'en-tête"
+
+#: ../browser/controlpanel.py:35
+msgid "Header value"
+msgstr "Valeur de l'en-tête"
+
+#: ../browser/controlpanel.py:60
+msgid "Enable OpenAI API proxy"
+msgstr "Activer le proxy de l'API OpenAI"
+
+#: ../browser/controlpanel.py:47
+msgid "Expose @@omnia-openai-api endpoint. Access is controlled by permissions."
+msgstr "Expose le point d'accès @@omnia-openai-api. L'accès est contrôlé par des permissions."
+
+#: ../browser/controlpanel.py:31
+msgid "Organization ID"
+msgstr "Identifiant de l'organisation"
+
+#: ../browser/configure.zcml:31
+msgid "The 'actions' menu - allows the user to execute actions on an object"
+msgstr "Le menu « actions » — permet d'exécuter des actions sur un objet"
+
+#: ../configure.zcml:55
+msgid "Uninstalls the imio.omnia.core add-on."
+msgstr "Désinstalle le module imio.omnia.core."
+
+#: ../configure.zcml:44
+msgid "imio.omnia.core"
+msgstr ""
+
+#: ../configure.zcml:53
+msgid "imio.omnia.core (uninstall)"
+msgstr "imio.omnia.core (désinstallation)"
+
+#. Default: "AI assistant"
+#: ../browser/menu.py:18
+msgid "omnia_actions"
+msgstr "Assistant IA"
+
+#. Default: "Actions for the current content item"
+#: ../browser/menu.py:19
+msgid "title_actions_menu"
+msgstr "Actions pour le contenu actuel"
+
+#: ../profiles/default/actions.xml
+msgid "Main"
+msgstr "Général"
+
+#: ../profiles/default/actions.xml (imio.omnia.tinymce)
+msgid "TinyMCE"
+msgstr "TinyMCE"
+
+#: ../profiles/default/actions.xml (imio.omnia.assistant)
+msgid "Assistant"
+msgstr "Assistant"

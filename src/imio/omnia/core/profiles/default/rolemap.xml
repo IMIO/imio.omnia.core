@@ -1,0 +1,11 @@
+<?xml version="1.0"?>
+<rolemap>
+  <permissions>
+    <permission name="imio.omnia.core: Access Omnia API proxy" acquire="False">
+      <role name="Authenticated" />
+    </permission>
+    <permission name="imio.omnia.core: Access Omnia OpenAI proxy" acquire="False">
+      <role name="Authenticated" />
+    </permission>
+  </permissions>
+</rolemap>

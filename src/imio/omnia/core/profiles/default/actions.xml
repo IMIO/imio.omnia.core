@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<object name="portal_actions" meta_type="Plone Actions Tool"
+        xmlns:i18n="http://xml.zope.org/namespaces/i18n">
+  <object name="omnia_controlpanel_tabs" meta_type="CMF Action Category">
+    <property name="title" i18n:translate="">Omnia control panel tabs</property>
+    <object name="imio.omnia.core" meta_type="CMF Action">
+      <property name="title" i18n:translate="">Main</property>
+      <property name="url_expr">string:${portal_url}/@@omnia-ai-settings</property>
+      <property name="icon_expr">string:omnia.monochrome.dark</property>
+    </object>
+  </object>
+  <object name="omnia_actions" meta_type="CMF Action Category">
+    <property name="title" i18n:translate="">Omnia Actions</property>
+  </object>
+</object>

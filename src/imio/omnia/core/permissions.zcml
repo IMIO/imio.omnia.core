@@ -1,0 +1,18 @@
+<configure
+  xmlns="http://namespaces.zope.org/zope"
+  xmlns:zcml="http://namespaces.zope.org/zcml"
+  i18n_domain="plone">
+
+  <configure zcml:condition="installed AccessControl.security">
+    <permission
+      id="imio.omnia.core.AccessOmniaAPIProxy"
+      title="imio.omnia.core: Access Omnia API proxy"
+    />
+
+    <permission
+      id="imio.omnia.core.AccessOmniaOpenAIProxy"
+      title="imio.omnia.core: Access Omnia OpenAI proxy"
+    />
+  </configure>
+
+</configure>

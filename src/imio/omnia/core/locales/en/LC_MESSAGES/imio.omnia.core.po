@@ -1,0 +1,73 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: imio.omnia.core\n"
+"POT-Creation-Date: 2026-03-23 00:00+0000\n"
+"PO-Revision-Date: 2026-03-23 00:00+0000\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: English <en@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0\n"
+"Language-Code: en\n"
+"Language-Name: English\n"
+"Preferred-Encodings: utf-8 latin1\n"
+"Domain: imio.omnia.core\n"
+
+#: ../browser/controlpanel.py:26
+msgid "Application ID"
+msgstr ""
+
+#: ../configure.zcml:46
+msgid "Installs the imio.omnia.core add-on."
+msgstr ""
+
+#: ../browser/controlpanel.py:38
+msgid "Expose @@omnia-api endpoint. Access is controlled by permissions."
+msgstr ""
+
+#: ../browser/controlpanel.py:37
+msgid "Main Omnia settings"
+msgstr ""
+
+#: ../browser/controlpanel.py:16
+msgid "Omnia Core API URL"
+msgstr ""
+
+#: ../browser/controlpanel.py:21
+msgid "OpenAI API URL"
+msgstr ""
+
+#: ../browser/controlpanel.py:47
+msgid "Expose @@omnia-openai-api endpoint. Access is controlled by permissions."
+msgstr ""
+
+#: ../browser/controlpanel.py:31
+msgid "Organization ID"
+msgstr ""
+
+#: ../browser/configure.zcml:31
+msgid "The 'actions' menu - allows the user to execute actions on an object"
+msgstr ""
+
+#: ../configure.zcml:55
+msgid "Uninstalls the imio.omnia.core add-on."
+msgstr ""
+
+#: ../configure.zcml:44
+msgid "imio.omnia.core"
+msgstr ""
+
+#: ../configure.zcml:53
+msgid "imio.omnia.core (uninstall)"
+msgstr ""
+
+#. Default: "AI assistant"
+#: ../browser/menu.py:18
+msgid "omnia_actions"
+msgstr ""
+
+#. Default: "Actions for the current content item"
+#: ../browser/menu.py:19
+msgid "title_actions_menu"
+msgstr ""

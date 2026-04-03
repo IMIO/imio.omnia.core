@@ -1,0 +1,50 @@
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:i18n="http://xml.zope.org/namespaces/i18n"
+      xmlns:metal="http://xml.zope.org/namespaces/metal"
+      xmlns:tal="http://xml.zope.org/namespaces/tal"
+      lang="en"
+   metal:use-macro="context/@@prefs_main_template/macros/master"
+      xml:lang="en"
+   i18n:domain="imio.omnia.core"
+>
+
+<body
+  tal:define="
+    icons python:context.restrictedTraverse('@@iconresolver');
+    "
+>
+<tal:main metal:fill-slot="prefs_configlet_main">
+
+  <header>
+
+    <h1 tal:content="view/label">View Title</h1>
+    <p class="lead"
+       tal:condition="view/description | nothing"
+       tal:content="structure view/description"
+    >View Description</p>
+  </header>
+
+  <div metal:use-macro="context/@@global_statusmessage/macros/portal_message">
+    Portal status message
+  </div>
+
+  <div id="content-core">
+    <ul class="nav nav-tabs">
+      <li class="nav-item" tal:repeat="tab view/tabs">
+        <a class="nav-link ${python:tab['id'] == view.active_tab['id'] and 'active' or ''}"
+           tal:attributes="href tab/url;
+            id string:tabs-${tab/id}
+          ">
+          <img tal:replace="structure python:icons.tag(tab['icon'])" />
+          <tal:title i18n:translate="" tal:content="tab/title" />
+        </a>
+      </li>
+    </ul>
+    <div id="layout-contents" class="mt-3">
+      <span tal:replace="structure view/contents"></span>
+    </div>
+  </div>
+
+</tal:main>
+</body>
+</html>

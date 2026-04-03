@@ -1,0 +1,81 @@
+<?xml version="1.0"?>
+<registry
+  xmlns:i18n="http://xml.zope.org/namespaces/i18n"
+  i18n:domain="imio.omnia.core">
+  <records interface="imio.omnia.core.browser.controlpanel.IOmniaCoreSettings"
+            prefix="imio.omnia.IOmniaCoreSettings"/>
+
+  <!-- Omnia icons -->
+  <record name="plone.icon.omnia.ia.dark">
+    <field type="plone.registry.field.TextLine">
+      <title>Omnia IA Dark</title>
+    </field>
+    <value key="resource">++plone++imio.omnia.core/omnia_ia_dark.svg</value>
+  </record>
+
+  <record name="plone.icon.omnia.ia.light">
+    <field type="plone.registry.field.TextLine">
+      <title>Omnia IA Light</title>
+    </field>
+    <value key="resource">++plone++imio.omnia.core/omnia_ia_light.svg</value>
+  </record>
+
+  <record name="plone.icon.omnia.imio.logotype.dark">
+    <field type="plone.registry.field.TextLine">
+      <title>Omnia iMio Logotype Dark</title>
+    </field>
+    <value key="resource">++plone++imio.omnia.core/omnia_imio_logotype_dark.svg</value>
+  </record>
+
+  <record name="plone.icon.omnia.imio.logotype.light">
+    <field type="plone.registry.field.TextLine">
+      <title>Omnia iMio Logotype Light</title>
+    </field>
+    <value key="resource">++plone++imio.omnia.core/omnia_imio_logotype_light.svg</value>
+  </record>
+
+  <record name="plone.icon.omnia.logotype.dark">
+    <field type="plone.registry.field.TextLine">
+      <title>Omnia Logotype Dark</title>
+    </field>
+    <value key="resource">++plone++imio.omnia.core/omnia_logotype_dark.svg</value>
+  </record>
+
+  <record name="plone.icon.omnia.logotype.light">
+    <field type="plone.registry.field.TextLine">
+      <title>Omnia Logotype Light</title>
+    </field>
+    <value key="resource">++plone++imio.omnia.core/omnia_logotype_light.svg</value>
+  </record>
+
+  <record name="plone.icon.omnia.monochrome.dark">
+    <field type="plone.registry.field.TextLine">
+      <title>Omnia Monochrome Dark</title>
+    </field>
+    <value key="resource">++plone++imio.omnia.core/omnia_monochrome_dark.svg</value>
+  </record>
+
+  <record name="plone.icon.omnia.monochrome.light">
+    <field type="plone.registry.field.TextLine">
+      <title>Omnia Monochrome Light</title>
+    </field>
+    <value key="resource">++plone++imio.omnia.core/omnia_monochrome_light.svg</value>
+  </record>
+
+  <record name="plone.icon.omnia.picto.dark">
+    <field type="plone.registry.field.TextLine">
+      <title>Omnia Picto Dark</title>
+    </field>
+    <value key="resource">++plone++imio.omnia.core/omnia_picto_dark.svg</value>
+  </record>
+
+  <record name="plone.icon.omnia.picto.light">
+    <field type="plone.registry.field.TextLine">
+      <title>Omnia Picto Light</title>
+    </field>
+    <value key="resource">++plone++imio.omnia.core/omnia_picto_light.svg</value>
+  </record>
+
+</registry>
+
+

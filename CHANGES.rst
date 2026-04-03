@@ -2,8 +2,8 @@ Changelog
 =========
 
 
-1.0a1 (unreleased)
--------------------
+1.0a1 (2026-04-03)
+------------------
 
 - Initial release.
   [duchenean]

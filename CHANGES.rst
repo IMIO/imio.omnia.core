@@ -2,7 +2,7 @@ Changelog
 =========
 
 
-1.0a2 (unreleased)
+1.0a2 (2026-04-03)
 ------------------
 
 - Updated package description to better reflect its role as shared infrastructure.

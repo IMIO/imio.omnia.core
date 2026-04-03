@@ -14,7 +14,7 @@ long_description = '\n\n'.join([
 
 setup(
     name='imio.omnia.core',
-    version='1.0a2',
+    version='1.0a3.dev0',
     description="Shared infrastructure for iMio's Omnia AI suite for Plone",
     long_description=long_description,
     # Get more from https://pypi.org/classifiers/

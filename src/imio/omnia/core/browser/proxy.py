@@ -9,10 +9,12 @@ from plone.protect.interfaces import IDisableCSRFProtection
 from Products.Five import BrowserView
 from zope.component import getMultiAdapter
 from ZPublisher.Iterators import IUnboundStreamIterator
+from zope.i18n import translate
 from zope.interface import alsoProvides
 from zope.interface import implementer
 from zope.publisher.interfaces import IPublishTraverse
 
+from imio.omnia.core import _
 from imio.omnia.core.interfaces import IOmniaOpenAIService
 from imio.omnia.core.services import IOmniaCoreAPIService
 from imio.omnia.core.settings import get_enable_openai_proxy
@@ -22,6 +24,18 @@ from imio.omnia.core.tokens import validate_token
 
 
 logger = logging.getLogger(__name__)
+
+_TIMEOUT_MSG = _(
+    "omnia_api_timeout",
+    default="L'API Omnia ne répond pas. Veuillez réessayer dans quelques instants.",
+)
+
+
+def _timeout_response(request):
+    return json.dumps({
+        "error": "timeout",
+        "message": translate(_TIMEOUT_MSG, context=request),
+    })
 
 
 @implementer(IPublishTraverse)
@@ -77,7 +91,7 @@ class OmniaProxyView(BrowserView):
             return json.dumps({"error": str(exc)})
         except httpx.TimeoutException:
             self.request.response.setStatus(504)
-            return json.dumps({"error": "timeout"})
+            return _timeout_response(self.request)
         except Exception:
             logger.exception("Omnia proxy error")
             self.request.response.setStatus(502)
@@ -270,7 +284,7 @@ class OmniaOpenAIProxyView(BrowserView):
             client.close()
             response.setHeader("Content-Type", "application/json")
             response.setStatus(504)
-            return json.dumps({"error": "timeout"})
+            return _timeout_response(self.request)
         except Exception:
             client.close()
             logger.exception("OpenAI proxy streaming error")
@@ -292,7 +306,7 @@ class OmniaOpenAIProxyView(BrowserView):
             return json.dumps({"error": str(exc)})
         except httpx.TimeoutException:
             self.request.response.setStatus(504)
-            return json.dumps({"error": "timeout"})
+            return _timeout_response(self.request)
         except Exception:
             logger.exception("OpenAI proxy error")
             self.request.response.setStatus(502)

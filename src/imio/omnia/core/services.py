@@ -12,7 +12,7 @@ from zope.interface import implementer
 from zope.publisher.interfaces.browser import IBrowserRequest
 
 from imio.omnia.core.interfaces import IOrganizationIDProvider, IOmniaCoreAPIService, IOmniaOpenAIService
-from imio.omnia.core.settings import get_application_id, get_openai_api_key, get_openai_extra_headers, get_setting
+from imio.omnia.core.settings import get_api_timeout, get_application_id, get_openai_api_key, get_openai_extra_headers, get_setting
 
 logger = logging.getLogger(__name__)
 
@@ -25,6 +25,7 @@ class BaseOmniaService:
     def __init__(self, context, request):
         self.context = context
         self.request = request
+        self.api_timeout = get_api_timeout()
 
     @property
     def base_url(self):
@@ -61,7 +62,7 @@ class BaseOmniaService:
         error_extra = ""
         current_exc = None
         try:
-            response = httpx.request(method, url, headers=headers, **kwargs)
+            response = httpx.request(method, url, headers=headers, timeout=self.api_timeout, **kwargs)
             response.raise_for_status()
             return response.json()
         except httpx.HTTPStatusError as exc:
@@ -200,7 +201,7 @@ class OmniaOpenAIService(BaseOmniaService):
         error_extra = ""
         current_exc = None
         try:
-            with httpx.stream("POST", url, headers=headers, json=payload) as response:
+            with httpx.stream("POST", url, headers=headers, json=payload, timeout=self.api_timeout) as response:
                 response.raise_for_status()
                 yield from self._iter_sse(response)
         except httpx.HTTPStatusError as exc:

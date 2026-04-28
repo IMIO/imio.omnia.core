@@ -9,10 +9,12 @@ from plone.protect.interfaces import IDisableCSRFProtection
 from Products.Five import BrowserView
 from zope.component import getMultiAdapter
 from ZPublisher.Iterators import IUnboundStreamIterator
+from zope.i18n import translate
 from zope.interface import alsoProvides
 from zope.interface import implementer
 from zope.publisher.interfaces import IPublishTraverse
 
+from imio.omnia.core import _
 from imio.omnia.core.interfaces import IOmniaOpenAIService
 from imio.omnia.core.services import IOmniaCoreAPIService
 from imio.omnia.core.settings import get_enable_openai_proxy
@@ -75,6 +77,12 @@ class OmniaProxyView(BrowserView):
         except httpx.HTTPStatusError as exc:
             self.request.response.setStatus(exc.response.status_code)
             return json.dumps({"error": str(exc)})
+        except httpx.TimeoutException:
+            self.request.response.setStatus(504, reason=translate(
+                _("The Omnia API is not responding. Try a smaller context or try again later."),
+                context=self.request
+            ))
+            return json.dumps({"error": "Upstream API timeout"})
         except Exception:
             logger.exception("Omnia proxy error")
             self.request.response.setStatus(502)

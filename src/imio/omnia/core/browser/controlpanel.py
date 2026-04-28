@@ -65,6 +65,13 @@ class IOmniaCoreSettings(Interface):
         default=False,
     )
 
+    api_timeout = schema.Int(
+        title=_("API timeout (seconds)"),
+        description=_("Timeout for HTTP requests to Omnia APIs, in seconds."),
+        required=False,
+        default=30,
+    )
+
 
 class OmniaCoreControlPanelForm(RegistryEditForm):
     label = _("Main Omnia settings")

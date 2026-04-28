@@ -89,6 +89,10 @@ def set_enable_openai_proxy(value):
     set_setting("enable_openai_proxy", value)
 
 
+def get_api_timeout():
+    return get_setting("api_timeout", default=30)
+
+
 def sync_env_to_registry(event):
     """On database open, write environment variable values into the Plone registry."""
     site_id = os.environ.get("SITE_ID")

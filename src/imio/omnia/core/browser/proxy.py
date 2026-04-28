@@ -25,16 +25,6 @@ from imio.omnia.core.tokens import validate_token
 
 logger = logging.getLogger(__name__)
 
-_TIMEOUT_MSG = _(
-    "omnia_api_timeout",
-    default="L'API Omnia ne répond pas. Veuillez réessayer dans quelques instants.",
-)
-
-
-def _timeout_response(request):
-    request.response.setStatus(504, reason=translate(_TIMEOUT_MSG, context=request))
-    return json.dumps({"error": "timeout"})
-
 
 @implementer(IPublishTraverse)
 class OmniaProxyView(BrowserView):
@@ -88,7 +78,11 @@ class OmniaProxyView(BrowserView):
             self.request.response.setStatus(exc.response.status_code)
             return json.dumps({"error": str(exc)})
         except httpx.TimeoutException:
-            return _timeout_response(self.request)
+            self.request.response.setStatus(504, reason=translate(
+                _("The Omnia API is not responding. Try a smaller context or try again later."),
+                context=self.request
+            ))
+            return json.dumps({"error": "Upstream API timeout"})
         except Exception:
             logger.exception("Omnia proxy error")
             self.request.response.setStatus(502)
@@ -277,10 +271,6 @@ class OmniaOpenAIProxyView(BrowserView):
             response.setHeader("Content-Type", "application/json")
             response.setStatus(exc.response.status_code)
             return json.dumps({"error": str(exc)})
-        except httpx.TimeoutException:
-            client.close()
-            response.setHeader("Content-Type", "application/json")
-            return _timeout_response(self.request)
         except Exception:
             client.close()
             logger.exception("OpenAI proxy streaming error")
@@ -300,8 +290,6 @@ class OmniaOpenAIProxyView(BrowserView):
         except httpx.HTTPStatusError as exc:
             self.request.response.setStatus(exc.response.status_code)
             return json.dumps({"error": str(exc)})
-        except httpx.TimeoutException:
-            return _timeout_response(self.request)
         except Exception:
             logger.exception("OpenAI proxy error")
             self.request.response.setStatus(502)

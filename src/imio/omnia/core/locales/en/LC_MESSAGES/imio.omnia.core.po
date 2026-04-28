@@ -81,5 +81,5 @@ msgid "Timeout for HTTP requests to Omnia APIs, in seconds."
 msgstr ""
 
 #: ../browser/proxy.py
-msgid "omnia_api_timeout"
-msgstr "The Omnia API is not responding. Please try again in a moment."
+msgid "The Omnia API is not responding. Try a smaller context or try again later."
+msgstr ""

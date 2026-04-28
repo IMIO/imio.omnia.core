@@ -67,7 +67,7 @@ class IOmniaCoreSettings(Interface):
 
     api_timeout = schema.Int(
         title=_("API timeout (seconds)"),
-        description=_("Timeout for HTTP requests to Omnia APIs."),
+        description=_("Timeout for HTTP requests to Omnia APIs, in seconds."),
         required=False,
         default=30,
     )

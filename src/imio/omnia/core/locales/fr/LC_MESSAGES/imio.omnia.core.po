@@ -125,5 +125,5 @@ msgid "Timeout for HTTP requests to Omnia APIs, in seconds."
 msgstr "Timeout pour les requêtes HTTP vers les APIs Omnia, en secondes. Si la requête prend plus de temps, l'utilisateur recevra une erreur."
 
 #: ../browser/proxy.py
-msgid "omnia_api_timeout"
-msgstr "L'API Omnia ne répond pas. Veuillez réessayer dans quelques instants."
+msgid "The Omnia API is not responding. Try a smaller context or try again later."
+msgstr "L'API Omnia ne répond pas. Veuillez réessayer avec un contexte plus petit ou réessayer plus tard."

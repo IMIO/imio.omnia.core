@@ -32,10 +32,8 @@ _TIMEOUT_MSG = _(
 
 
 def _timeout_response(request):
-    return json.dumps({
-        "error": "timeout",
-        "message": translate(_TIMEOUT_MSG, context=request),
-    })
+    request.response.setStatus(504, reason=translate(_TIMEOUT_MSG, context=request))
+    return json.dumps({"error": "timeout"})
 
 
 @implementer(IPublishTraverse)
@@ -90,7 +88,6 @@ class OmniaProxyView(BrowserView):
             self.request.response.setStatus(exc.response.status_code)
             return json.dumps({"error": str(exc)})
         except httpx.TimeoutException:
-            self.request.response.setStatus(504)
             return _timeout_response(self.request)
         except Exception:
             logger.exception("Omnia proxy error")
@@ -283,7 +280,6 @@ class OmniaOpenAIProxyView(BrowserView):
         except httpx.TimeoutException:
             client.close()
             response.setHeader("Content-Type", "application/json")
-            response.setStatus(504)
             return _timeout_response(self.request)
         except Exception:
             client.close()
@@ -305,7 +301,6 @@ class OmniaOpenAIProxyView(BrowserView):
             self.request.response.setStatus(exc.response.status_code)
             return json.dumps({"error": str(exc)})
         except httpx.TimeoutException:
-            self.request.response.setStatus(504)
             return _timeout_response(self.request)
         except Exception:
             logger.exception("OpenAI proxy error")

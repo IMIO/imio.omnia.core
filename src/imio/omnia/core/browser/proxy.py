@@ -75,6 +75,9 @@ class OmniaProxyView(BrowserView):
         except httpx.HTTPStatusError as exc:
             self.request.response.setStatus(exc.response.status_code)
             return json.dumps({"error": str(exc)})
+        except httpx.TimeoutException:
+            self.request.response.setStatus(504)
+            return json.dumps({"error": "timeout"})
         except Exception:
             logger.exception("Omnia proxy error")
             self.request.response.setStatus(502)
@@ -263,6 +266,11 @@ class OmniaOpenAIProxyView(BrowserView):
             response.setHeader("Content-Type", "application/json")
             response.setStatus(exc.response.status_code)
             return json.dumps({"error": str(exc)})
+        except httpx.TimeoutException:
+            client.close()
+            response.setHeader("Content-Type", "application/json")
+            response.setStatus(504)
+            return json.dumps({"error": "timeout"})
         except Exception:
             client.close()
             logger.exception("OpenAI proxy streaming error")
@@ -282,6 +290,9 @@ class OmniaOpenAIProxyView(BrowserView):
         except httpx.HTTPStatusError as exc:
             self.request.response.setStatus(exc.response.status_code)
             return json.dumps({"error": str(exc)})
+        except httpx.TimeoutException:
+            self.request.response.setStatus(504)
+            return json.dumps({"error": "timeout"})
         except Exception:
             logger.exception("OpenAI proxy error")
             self.request.response.setStatus(502)

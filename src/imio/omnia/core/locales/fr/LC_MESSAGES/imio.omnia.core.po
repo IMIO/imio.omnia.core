@@ -115,3 +115,11 @@ msgstr "TinyMCE"
 #: ../profiles/default/actions.xml (imio.omnia.assistant)
 msgid "Assistant"
 msgstr "Assistant"
+
+#: ../browser/controlpanel.py
+msgid "API timeout (seconds)"
+msgstr "Timeout de l'API (secondes)"
+
+#: ../browser/controlpanel.py
+msgid "Timeout for HTTP requests to Omnia APIs."
+msgstr "Délai d'attente pour les requêtes HTTP vers les APIs Omnia."

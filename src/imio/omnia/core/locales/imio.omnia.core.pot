@@ -90,3 +90,11 @@ msgstr ""
 #: ../profiles/default/actions.xml (imio.omnia.assistant)
 msgid "Assistant"
 msgstr ""
+
+#: ../browser/controlpanel.py
+msgid "API timeout (seconds)"
+msgstr ""
+
+#: ../browser/controlpanel.py
+msgid "Timeout for HTTP requests to Omnia APIs."
+msgstr ""

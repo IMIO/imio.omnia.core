@@ -25,6 +25,8 @@ src/imio/omnia/core/
 ├── interfaces.py                # IImioOmniaCoreLayer, IImioOmniaControlPanelFieldProvider, IOmniaActionsProvider, IOrganizationIDProvider
 ├── services.py                  # IOmniaCoreAPIService, IOmniaOpenAIService, OrganizationIDProvider
 ├── settings.py                  # Env var → registry sync on startup (IDatabaseOpenedWithRoot)
+├── oauth.py                     # OAuth 2.0 client (authlib-on-httpx2 port) + process-level shared client
+├── upgrades.py                  # GenericSetup upgrade steps
 ├── testing.py                   # IMIO_OMNIA_CORE_*_TESTING fixtures
 ├── setuphandlers.py             # HiddenProfiles, post_install, uninstall hooks
 ├── configure.zcml               # Root ZCML — profiles, permissions, browser include
@@ -96,6 +98,15 @@ Stored under `imio.omnia.core.browser.controlpanel.IOmniaCoreSettings`:
 - `openai_api_url` — OpenAI API URL
 - `application_id` — Application ID
 - `organization_id` — Organization ID
+- `auth_type` — authentication type (bearer/oauth2)
+- `oauth_grant_type` — OAuth 2.0 grant type (password / client_credentials)
+- `oauth_client_id` — OAuth 2.0 client ID
+- `oauth_client_secret` — OAuth 2.0 client secret
+- `oauth_token_url` — OAuth 2.0 token endpoint URL
+- `oauth_scope` — OAuth 2.0 scope
+- `oauth_client_auth_method` — OAuth 2.0 client authentication method (client_secret_basic / client_secret_post)
+- `oauth_username` — OAuth 2.0 username (service account, ROPC grant)
+- `oauth_password` — OAuth 2.0 password (service account, ROPC grant)
 
 ## Services
 
@@ -116,6 +127,8 @@ result = service.improve_text("Le projet va bien.")
 
 Both services send `x-imio-application` (from registry) and `x-imio-municipality` (from `IOrganizationIDProvider` adapter) headers on every request.
 
+When `auth_type=oauth2`, both services authenticate with a Keycloak SSO-Apps Bearer token obtained by a process-level shared client (`oauth.py`, an authlib-on-httpx2 port, with eager token refresh under a lock). The OpenAI service only applies this for iMio-hosted URLs — external OpenAI-compatible providers keep using the static `openai_api_key`.
+
 ## Environment variables
 
 Set via buildout `environment-vars` or shell. Synced to registry on startup via `IDatabaseOpenedWithRoot` subscriber (requires `SITE_ID`).
@@ -125,8 +138,18 @@ Set via buildout `environment-vars` or shell. Synced to registry on startup via 
 | `SITE_ID` | Target Plone site ID in ZODB |
 | `OMNIA_CORE_API_URL` | `core_api_url` |
 | `OMNIA_OPENAI_API_URL` | `openai_api_url` |
+| `OMNIA_OPENAI_API_KEY` | `openai_api_key` |
 | `OMNIA_APPLICATION_ID` | `application_id` |
 | `OMNIA_ORGANIZATION_ID` | `organization_id` |
+| `OMNIA_AUTH_TYPE` | `auth_type` |
+| `OMNIA_OAUTH_GRANT_TYPE` | `oauth_grant_type` |
+| `OMNIA_OAUTH_CLIENT_ID` | `oauth_client_id` |
+| `OMNIA_OAUTH_CLIENT_SECRET` | `oauth_client_secret` |
+| `OMNIA_OAUTH_TOKEN_URL` | `oauth_token_url` |
+| `OMNIA_OAUTH_SCOPE` | `oauth_scope` |
+| `OMNIA_OAUTH_CLIENT_AUTH_METHOD` | `oauth_client_auth_method` |
+| `OMNIA_OAUTH_USERNAME` | `oauth_username` |
+| `OMNIA_OAUTH_PASSWORD` | `oauth_password` |
 
 ## Architecture notes
 

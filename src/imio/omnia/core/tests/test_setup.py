@@ -141,6 +141,22 @@ class TestSetup(unittest.TestCase):
             "No upgrade step from 1000 to 1001 registered",
         )
 
+    def test_upgrade_step_recreates_missing_oauth_records(self):
+        registry = api.portal.get_tool("portal_registry")
+        prefix = "imio.omnia.IOmniaCoreSettings"
+        del registry.records[f"{prefix}.oauth_client_id"]
+        del registry.records[f"{prefix}.oauth_token_url"]
+        self.assertNotIn(f"{prefix}.oauth_client_id", registry.records)
+
+        from imio.omnia.core.upgrades import upgrade_1000_to_1001
+
+        setup_tool = api.portal.get_tool("portal_setup")
+        upgrade_1000_to_1001(setup_tool)
+
+        self.assertIn(f"{prefix}.oauth_client_id", registry.records)
+        self.assertIn(f"{prefix}.oauth_token_url", registry.records)
+        self.assertIsNone(registry[f"{prefix}.oauth_client_id"])
+
 
 class TestUninstall(unittest.TestCase):
 

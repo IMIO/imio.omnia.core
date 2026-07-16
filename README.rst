@@ -71,16 +71,25 @@ Settings can also be driven by environment variables. They are synced to the
 Plone registry on Zope startup (requires ``SITE_ID`` to locate the Plone
 site):
 
-=========================  ================
-Variable                   Registry field
-=========================  ================
-``SITE_ID``                Plone site ID in the ZODB (not stored in registry)
-``OMNIA_CORE_API_URL``     ``core_api_url``
-``OMNIA_OPENAI_API_URL``   ``openai_api_url``
-``OMNIA_OPENAI_API_KEY``   ``openai_api_key``
-``OMNIA_APPLICATION_ID``   ``application_id``
-``OMNIA_ORGANIZATION_ID``  ``organization_id``
-=========================  ================
+==================================  ==============
+Variable                            Registry field
+==================================  ==============
+``SITE_ID``                         Plone site ID in the ZODB (not stored in registry)
+``OMNIA_CORE_API_URL``              ``core_api_url``
+``OMNIA_OPENAI_API_URL``            ``openai_api_url``
+``OMNIA_OPENAI_API_KEY``            ``openai_api_key``
+``OMNIA_APPLICATION_ID``            ``application_id``
+``OMNIA_ORGANIZATION_ID``           ``organization_id``
+``OMNIA_AUTH_TYPE``                 ``auth_type``
+``OMNIA_OAUTH_GRANT_TYPE``          ``oauth_grant_type``
+``OMNIA_OAUTH_CLIENT_ID``           ``oauth_client_id``
+``OMNIA_OAUTH_CLIENT_SECRET``       ``oauth_client_secret``
+``OMNIA_OAUTH_TOKEN_URL``           ``oauth_token_url``
+``OMNIA_OAUTH_SCOPE``               ``oauth_scope``
+``OMNIA_OAUTH_CLIENT_AUTH_METHOD``  ``oauth_client_auth_method``
+``OMNIA_OAUTH_USERNAME``            ``oauth_username``
+``OMNIA_OAUTH_PASSWORD``            ``oauth_password``
+==================================  ==============
 
 Set them in ``buildout.cfg`` under ``[instance] environment-vars`` or export
 them in your shell before starting Plone.

@@ -7,6 +7,13 @@ Changelog
 
 - DELIBE-289: Add configurable API timeout.
   [duchenean]
+- OIA-241: Authenticate outbound Omnia API calls with Keycloak SSO-Apps
+  OAuth 2.0 (ROPC / client credentials via authlib), configurable in the
+  control panel and via ``OMNIA_AUTH_TYPE`` / ``OMNIA_OAUTH_*`` environment
+  variables.
+  [duchenean]
+- DELIBE-322: Replace ``httpx`` with ``httpx2`` (maintained pydantic fork).
+  [duchenean]
 
 
 1.0a2 (2026-04-03)

@@ -11,8 +11,16 @@ from zope.interface import Interface
 from zope.interface import implementer
 from zope.publisher.interfaces.browser import IBrowserRequest
 
+from imio.omnia.core import oauth
 from imio.omnia.core.interfaces import IOrganizationIDProvider, IOmniaCoreAPIService, IOmniaOpenAIService
-from imio.omnia.core.settings import get_api_timeout, get_application_id, get_openai_api_key, get_openai_extra_headers, get_setting
+from imio.omnia.core.settings import (
+    get_api_timeout,
+    get_application_id,
+    get_auth_type,
+    get_openai_api_key,
+    get_openai_extra_headers,
+    get_setting,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -41,6 +49,9 @@ class BaseOmniaService:
             headers["x-imio-municipality"] = organization_id
         return headers
 
+    def _use_oauth(self):
+        return get_auth_type() == "oauth2"
+
     def _log_request(self, path, duration_ms, exc=None, extra=""):
         segment = path.rstrip("/").rsplit("/", 1)[-1] or path  # We'll keep just the action to keep the log shorter
         action = f"omnia.{segment}"
@@ -62,7 +73,11 @@ class BaseOmniaService:
         error_extra = ""
         current_exc = None
         try:
-            response = httpx2.request(method, url, headers=headers, timeout=self.api_timeout, **kwargs)
+            if self._use_oauth():
+                client = oauth.get_oauth_client()
+                response = client.request(method, url, headers=headers, timeout=self.api_timeout, **kwargs)
+            else:
+                response = httpx2.request(method, url, headers=headers, timeout=self.api_timeout, **kwargs)
             response.raise_for_status()
             return response.json()
         except httpx2.HTTPStatusError as exc:
@@ -150,6 +165,11 @@ class OmniaCoreAPIService(BaseOmniaService):
 class OmniaOpenAIService(BaseOmniaService):
     registry_url_field = "openai_api_url"
 
+    def _use_oauth(self):
+        # OAuth only against iMio-hosted gateways; external providers
+        # (e.g. openai.com) keep the static API key.
+        return super()._use_oauth() and "imio.be" in urlparse(self.base_url).netloc
+
     def _headers(self):
         # Only send iMio-specific headers (x-imio-application, x-imio-municipality)
         # to iMio-hosted endpoints; external providers (e.g. openai.com) reject them.
@@ -157,9 +177,10 @@ class OmniaOpenAIService(BaseOmniaService):
             headers = super()._headers()
         else:
             headers = {}
-        api_key = get_openai_api_key()
-        if api_key:
-            headers["Authorization"] = f"Bearer {api_key}"
+        if not self._use_oauth():
+            api_key = get_openai_api_key()
+            if api_key:
+                headers["Authorization"] = f"Bearer {api_key}"
         extra = get_openai_extra_headers()
         if extra:
             headers.update(extra)
@@ -201,7 +222,13 @@ class OmniaOpenAIService(BaseOmniaService):
         error_extra = ""
         current_exc = None
         try:
-            with httpx2.stream("POST", url, headers=headers, json=payload, timeout=self.api_timeout) as response:
+            if self._use_oauth():
+                stream_cm = oauth.get_oauth_client().stream(
+                    "POST", url, headers=headers, json=payload, timeout=self.api_timeout
+                )
+            else:
+                stream_cm = httpx2.stream("POST", url, headers=headers, json=payload, timeout=self.api_timeout)
+            with stream_cm as response:
                 response.raise_for_status()
                 yield from self._iter_sse(response)
         except httpx2.HTTPStatusError as exc:
@@ -214,7 +241,9 @@ class OmniaOpenAIService(BaseOmniaService):
             raise
         finally:
             duration_ms = round((time.monotonic() - start) * 1000)
-            self._log_request(path, duration_ms, exc=current_exc, extra=f"input_len={input_len} streaming=true{error_extra}")
+            self._log_request(
+                path, duration_ms, exc=current_exc, extra=f"input_len={input_len} streaming=true{error_extra}"
+            )
 
     @staticmethod
     def _iter_sse(response):
@@ -222,7 +251,7 @@ class OmniaOpenAIService(BaseOmniaService):
         for line in response.iter_lines():
             if not line or not line.startswith("data: "):
                 continue
-            data = line[len("data: "):]
+            data = line[len("data: ") :]
             if data == "[DONE]":
                 return
             yield json.loads(data)

@@ -127,3 +127,79 @@ msgstr "Timeout pour les requêtes HTTP vers les APIs Omnia, en secondes. Si la 
 #: ../browser/proxy.py
 msgid "The Omnia API is not responding. Try a smaller context or try again later."
 msgstr "L'API Omnia ne répond pas. Veuillez réessayer avec un contexte plus petit ou réessayer plus tard."
+
+#: ../browser/controlpanel.py
+msgid "Bearer (static API key)"
+msgstr "Bearer (clé d'API statique)"
+
+#: ../browser/controlpanel.py
+msgid "OAuth 2.0"
+msgstr "OAuth 2.0"
+
+#: ../browser/controlpanel.py
+msgid "Password Credentials (ROPC)"
+msgstr "Mot de passe (ROPC)"
+
+#: ../browser/controlpanel.py
+msgid "Client Credentials"
+msgstr "Client Credentials"
+
+#: ../browser/controlpanel.py
+msgid "Basic header (client_secret_basic)"
+msgstr "En-tête Basic (client_secret_basic)"
+
+#: ../browser/controlpanel.py
+msgid "Request body (client_secret_post)"
+msgstr "Corps de la requête (client_secret_post)"
+
+#: ../browser/controlpanel.py
+msgid "Authentication type"
+msgstr "Type d'authentification"
+
+#: ../browser/controlpanel.py
+msgid "How outbound Omnia API requests authenticate."
+msgstr "Comment les requêtes sortantes vers l'API Omnia s'authentifient."
+
+#: ../browser/controlpanel.py
+msgid "OAuth 2.0 grant type"
+msgstr "Type d'octroi OAuth 2.0 (grant type)"
+
+#: ../browser/controlpanel.py
+msgid "OAuth 2.0 client ID"
+msgstr "Identifiant client OAuth 2.0 (Client ID)"
+
+#: ../browser/controlpanel.py
+msgid "OAuth 2.0 client secret"
+msgstr "Secret client OAuth 2.0 (Client Secret)"
+
+#: ../browser/controlpanel.py
+msgid "OAuth 2.0 token endpoint URL"
+msgstr "URL du point de terminaison du jeton OAuth 2.0"
+
+#: ../browser/controlpanel.py
+msgid "E.g. https://<keycloak>/realms/sso-apps/protocol/openid-connect/token."
+msgstr "Par ex. https://<keycloak>/realms/sso-apps/protocol/openid-connect/token."
+
+#: ../browser/controlpanel.py
+msgid "OAuth 2.0 scope"
+msgstr "Scope / permissions OAuth 2.0"
+
+#: ../browser/controlpanel.py
+msgid "Optional, often empty for client_credentials."
+msgstr "Optionnel, souvent vide pour client_credentials."
+
+#: ../browser/controlpanel.py
+msgid "OAuth 2.0 client authentication method"
+msgstr "Méthode d'authentification du client OAuth 2.0"
+
+#: ../browser/controlpanel.py
+msgid "OAuth 2.0 username (service account)"
+msgstr "Nom d'utilisateur OAuth 2.0 (compte de service)"
+
+#: ../browser/controlpanel.py
+msgid "Only used with the Password Credentials (ROPC) grant."
+msgstr "Utilisé uniquement avec l'octroi Mot de passe (ROPC)."
+
+#: ../browser/controlpanel.py
+msgid "OAuth 2.0 password (service account)"
+msgstr "Mot de passe OAuth 2.0 (compte de service)"

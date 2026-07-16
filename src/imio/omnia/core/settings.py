@@ -17,11 +17,10 @@ ENV_MAPPING = {
     "organization_id": "OMNIA_ORGANIZATION_ID",
 }
 
+
 def get_setting(field, default=None):
     """Return the value of an IOmniaCoreSettings registry field."""
-    return api.portal.get_registry_record(
-        f"{REGISTRY_PREFIX}.{field}", default=default
-    )
+    return api.portal.get_registry_record(f"{REGISTRY_PREFIX}.{field}", default=default)
 
 
 def set_setting(field, value):
@@ -93,17 +92,21 @@ def get_api_timeout():
     return get_setting("api_timeout", default=30)
 
 
+def get_auth_type():
+    return get_setting("auth_type", default="bearer")
+
+
+def set_auth_type(value):
+    set_setting("auth_type", value)
+
+
 def sync_env_to_registry(event):
     """On database open, write environment variable values into the Plone registry."""
     site_id = os.environ.get("SITE_ID")
     if not site_id:
         return
 
-    env_values = {
-        name: os.environ[env_var]
-        for name, env_var in ENV_MAPPING.items()
-        if os.environ.get(env_var)
-    }
+    env_values = {name: os.environ[env_var] for name, env_var in ENV_MAPPING.items() if os.environ.get(env_var)}
     if not env_values:
         return
 

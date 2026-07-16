@@ -83,3 +83,79 @@ msgstr ""
 #: ../browser/proxy.py
 msgid "The Omnia API is not responding. Try a smaller context or try again later."
 msgstr ""
+
+#: ../browser/controlpanel.py
+msgid "Bearer (static API key)"
+msgstr ""
+
+#: ../browser/controlpanel.py
+msgid "OAuth 2.0"
+msgstr ""
+
+#: ../browser/controlpanel.py
+msgid "Password Credentials (ROPC)"
+msgstr ""
+
+#: ../browser/controlpanel.py
+msgid "Client Credentials"
+msgstr ""
+
+#: ../browser/controlpanel.py
+msgid "Basic header (client_secret_basic)"
+msgstr ""
+
+#: ../browser/controlpanel.py
+msgid "Request body (client_secret_post)"
+msgstr ""
+
+#: ../browser/controlpanel.py
+msgid "Authentication type"
+msgstr ""
+
+#: ../browser/controlpanel.py
+msgid "How outbound Omnia API requests authenticate."
+msgstr ""
+
+#: ../browser/controlpanel.py
+msgid "OAuth 2.0 grant type"
+msgstr ""
+
+#: ../browser/controlpanel.py
+msgid "OAuth 2.0 client ID"
+msgstr ""
+
+#: ../browser/controlpanel.py
+msgid "OAuth 2.0 client secret"
+msgstr ""
+
+#: ../browser/controlpanel.py
+msgid "OAuth 2.0 token endpoint URL"
+msgstr ""
+
+#: ../browser/controlpanel.py
+msgid "E.g. https://<keycloak>/realms/sso-apps/protocol/openid-connect/token."
+msgstr ""
+
+#: ../browser/controlpanel.py
+msgid "OAuth 2.0 scope"
+msgstr ""
+
+#: ../browser/controlpanel.py
+msgid "Optional, often empty for client_credentials."
+msgstr ""
+
+#: ../browser/controlpanel.py
+msgid "OAuth 2.0 client authentication method"
+msgstr ""
+
+#: ../browser/controlpanel.py
+msgid "OAuth 2.0 username (service account)"
+msgstr ""
+
+#: ../browser/controlpanel.py
+msgid "Only used with the Password Credentials (ROPC) grant."
+msgstr ""
+
+#: ../browser/controlpanel.py
+msgid "OAuth 2.0 password (service account)"
+msgstr ""

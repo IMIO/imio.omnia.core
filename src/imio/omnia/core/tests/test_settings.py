@@ -10,6 +10,7 @@ from plone.app.testing import setRoles
 from plone.app.testing import TEST_USER_ID
 
 from imio.omnia.core.settings import get_application_id
+from imio.omnia.core.settings import get_auth_type
 from imio.omnia.core.settings import get_core_api_url
 from imio.omnia.core.settings import get_enable_openai_proxy
 from imio.omnia.core.settings import get_enable_proxy
@@ -19,6 +20,7 @@ from imio.omnia.core.settings import get_openai_extra_headers
 from imio.omnia.core.settings import get_organization_id
 from imio.omnia.core.settings import get_setting
 from imio.omnia.core.settings import set_application_id
+from imio.omnia.core.settings import set_auth_type
 from imio.omnia.core.settings import set_core_api_url
 from imio.omnia.core.settings import set_enable_openai_proxy
 from imio.omnia.core.settings import set_enable_proxy
@@ -75,6 +77,18 @@ class TestSettingsAccessors(unittest.TestCase):
         set_enable_proxy(False)
         set_enable_openai_proxy(False)
         set_setting("openai_extra_headers", {})
+        set_setting("auth_type", "bearer")
+        set_setting("oauth_grant_type", "password")
+        set_setting("oauth_client_auth_method", "client_secret_basic")
+        for field in (
+            "oauth_client_id",
+            "oauth_client_secret",
+            "oauth_token_url",
+            "oauth_scope",
+            "oauth_username",
+            "oauth_password",
+        ):
+            set_setting(field, "")
 
     @patch("imio.omnia.core.settings.api.portal.get_registry_record")
     def test_get_setting_uses_prefixed_registry_key(self, mock_get_record):
@@ -115,6 +129,28 @@ class TestSettingsAccessors(unittest.TestCase):
 
         set_setting("openai_extra_headers", {"X-Test": "extra"})
         self.assertEqual(get_openai_extra_headers(), {"X-Test": "extra"})
+
+    def test_auth_type_defaults_to_bearer(self):
+        self.assertEqual(get_auth_type(), "bearer")
+
+    def test_oauth_settings_round_trip(self):
+        cases = [
+            ("auth_type", "oauth2"),
+            ("oauth_grant_type", "client_credentials"),
+            ("oauth_client_id", "imio-apps-deliberationsbe"),
+            ("oauth_client_secret", "s3cr3t"),
+            ("oauth_token_url", "https://kc.example/realms/sso-apps/protocol/openid-connect/token"),
+            ("oauth_scope", "profile"),
+            ("oauth_client_auth_method", "client_secret_post"),
+            ("oauth_username", "svc-account"),
+            ("oauth_password", "pw"),
+        ]
+        for field, value in cases:
+            with self.subTest(field=field):
+                set_setting(field, value)
+                self.assertEqual(get_setting(field), value)
+        set_auth_type("bearer")
+        self.assertEqual(get_auth_type(), "bearer")
 
 
 class TestSyncEnvToRegistry(unittest.TestCase):
@@ -271,9 +307,7 @@ class TestSyncEnvToRegistry(unittest.TestCase):
             new_callable=PropertyMock,
             side_effect=RuntimeError("broken registry"),
         ):
-            event, connection, _database = self._event_for(
-                {"Application": {"Plone": site}}
-            )
+            event, connection, _database = self._event_for({"Application": {"Plone": site}})
 
             sync_env_to_registry(event)
 

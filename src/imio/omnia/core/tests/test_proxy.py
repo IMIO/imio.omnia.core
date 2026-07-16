@@ -4,7 +4,7 @@ import json
 import unittest
 from unittest.mock import MagicMock, patch
 
-import httpx
+import httpx2
 from plone.app.testing import TEST_USER_ID, setRoles
 from zope.component import ComponentLookupError, getMultiAdapter
 from zope.interface import alsoProvides
@@ -27,7 +27,7 @@ class TestOmniaProxyView(unittest.TestCase):
       3. Dedicated browser view permission: access policy is declared in ZCML
          and GenericSetup instead of being hard-coded in Python.
 
-    Only ``httpx.request`` is mocked for upstream tests; all Plone machinery
+    Only ``httpx2.request`` is mocked for upstream tests; all Plone machinery
     (registry, component lookup, adapters) runs for real.
     """
 
@@ -122,7 +122,7 @@ class TestOmniaProxyView(unittest.TestCase):
 
     # --- Upstream service integration ---
 
-    @patch("httpx.request")
+    @patch("httpx2.request")
     def test_successful_call_returns_upstream_json(self, mock_httpx):
         """On a successful upstream call, the JSON result is passed through."""
         mock_resp = MagicMock()
@@ -138,12 +138,12 @@ class TestOmniaProxyView(unittest.TestCase):
         self.assertEqual(result, {"output": "improved text"})
         self.assertEqual(self.request.response.getStatus(), 200)
 
-    @patch("httpx.request")
+    @patch("httpx2.request")
     def test_upstream_http_error_forwards_status_code(self, mock_httpx):
         """An HTTPStatusError from upstream is forwarded as-is."""
         upstream_response = MagicMock()
         upstream_response.status_code = 422
-        mock_httpx.side_effect = httpx.HTTPStatusError(
+        mock_httpx.side_effect = httpx2.HTTPStatusError(
             "Unprocessable Entity",
             request=MagicMock(),
             response=upstream_response,
@@ -157,7 +157,7 @@ class TestOmniaProxyView(unittest.TestCase):
         self.assertEqual(self.request.response.getStatus(), 422)
         self.assertIn("error", result)
 
-    @patch("httpx.request")
+    @patch("httpx2.request")
     def test_generic_exception_returns_502(self, mock_httpx):
         """An unexpected exception from the service layer returns 502."""
         mock_httpx.side_effect = ConnectionError("upstream unreachable")
@@ -170,7 +170,7 @@ class TestOmniaProxyView(unittest.TestCase):
         self.assertEqual(self.request.response.getStatus(), 502)
         self.assertEqual(result, {"error": "Upstream API error"})
 
-    @patch("httpx.request")
+    @patch("httpx2.request")
     def test_path_segments_included_in_upstream_url(self, mock_httpx):
         """The assembled path is sent to the upstream service URL."""
         mock_resp = MagicMock()
@@ -183,10 +183,10 @@ class TestOmniaProxyView(unittest.TestCase):
             body={"input": "text"},
             path_segments=["v1", "agents", "correct-text"],
         )()
-        # httpx.request(method, url, ...) — url is the second positional arg.
+        # httpx2.request(method, url, ...) — url is the second positional arg.
         self.assertIn("/v1/agents/correct-text", mock_httpx.call_args[0][1])
 
-    @patch("httpx.request")
+    @patch("httpx2.request")
     def test_request_body_forwarded_to_upstream(self, mock_httpx):
         """The parsed JSON body is forwarded verbatim to the upstream service."""
         mock_resp = MagicMock()

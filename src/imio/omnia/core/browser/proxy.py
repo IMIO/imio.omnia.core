@@ -3,7 +3,7 @@ import json
 import logging
 from urllib.parse import urlparse
 
-import httpx
+import httpx2
 from plone import api
 from plone.protect.interfaces import IDisableCSRFProtection
 from Products.Five import BrowserView
@@ -74,10 +74,10 @@ class OmniaProxyView(BrowserView):
 
         try:
             result = service.post_json(path, payload=body)
-        except httpx.HTTPStatusError as exc:
+        except httpx2.HTTPStatusError as exc:
             self.request.response.setStatus(exc.response.status_code)
             return json.dumps({"error": str(exc)})
-        except httpx.TimeoutException:
+        except httpx2.TimeoutException:
             self.request.response.setStatus(504, reason=translate(
                 _("The Omnia API is not responding. Try a smaller context or try again later."),
                 context=self.request
@@ -93,7 +93,7 @@ class OmniaProxyView(BrowserView):
 
 @implementer(IUnboundStreamIterator)
 class SSEStreamIterator:
-    """Wrap an httpx streaming response as a Zope IUnboundStreamIterator.
+    """Wrap an httpx2 streaming response as a Zope IUnboundStreamIterator.
 
     Zope's ``response.write()`` buffers everything in a BytesIO and only
     delivers the data to the WSGI server when the view returns.  By
@@ -250,13 +250,13 @@ class OmniaOpenAIProxyView(BrowserView):
 
         logger.debug("OpenAI proxy request body: %s", json.dumps(body))
 
-        client = httpx.Client(timeout=120.0)
+        client = httpx2.Client(timeout=120.0)
         try:
             req = client.build_request("POST", url, headers=headers, json=body)
             upstream = client.send(req, stream=True)
             upstream.raise_for_status()
             return SSEStreamIterator(client, upstream)
-        except httpx.HTTPStatusError as exc:
+        except httpx2.HTTPStatusError as exc:
             try:
                 error_body = exc.response.read().decode("utf-8", errors="replace")
             except Exception:
@@ -282,12 +282,12 @@ class OmniaOpenAIProxyView(BrowserView):
         """Standard JSON proxy (non-streaming)."""
         self.request.response.setHeader("Content-Type", "application/json")
         try:
-            resp = httpx.request(
+            resp = httpx2.request(
                 "POST", url, headers=headers, json=body, timeout=60.0
             )
             self.request.response.setStatus(resp.status_code)
             return resp.text
-        except httpx.HTTPStatusError as exc:
+        except httpx2.HTTPStatusError as exc:
             self.request.response.setStatus(exc.response.status_code)
             return json.dumps({"error": str(exc)})
         except Exception:

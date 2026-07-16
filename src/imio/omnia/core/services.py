@@ -2,7 +2,7 @@ import json
 import logging
 import time
 from urllib.parse import urlparse
-import httpx
+import httpx2
 
 from imio.helpers.security import fplog
 from zope.component import adapter
@@ -48,7 +48,7 @@ class BaseOmniaService:
         if extra:
             details += f" {extra}"
         fplog(action, details)
-        if isinstance(exc, httpx.HTTPStatusError):
+        if isinstance(exc, httpx2.HTTPStatusError):
             logger.warning("Omnia API HTTP error: %s %s", action, details)
         elif exc is not None:
             logger.error("Omnia API unexpected error: %s %s", action, details, exc_info=exc)
@@ -62,10 +62,10 @@ class BaseOmniaService:
         error_extra = ""
         current_exc = None
         try:
-            response = httpx.request(method, url, headers=headers, timeout=self.api_timeout, **kwargs)
+            response = httpx2.request(method, url, headers=headers, timeout=self.api_timeout, **kwargs)
             response.raise_for_status()
             return response.json()
-        except httpx.HTTPStatusError as exc:
+        except httpx2.HTTPStatusError as exc:
             error_extra = f" error=http_{exc.response.status_code}"
             current_exc = exc
             raise
@@ -201,10 +201,10 @@ class OmniaOpenAIService(BaseOmniaService):
         error_extra = ""
         current_exc = None
         try:
-            with httpx.stream("POST", url, headers=headers, json=payload, timeout=self.api_timeout) as response:
+            with httpx2.stream("POST", url, headers=headers, json=payload, timeout=self.api_timeout) as response:
                 response.raise_for_status()
                 yield from self._iter_sse(response)
-        except httpx.HTTPStatusError as exc:
+        except httpx2.HTTPStatusError as exc:
             error_extra = f" error=http_{exc.response.status_code}"
             current_exc = exc
             raise

@@ -52,7 +52,8 @@ setup(
         'plone.api>=1.8.4',
         'plone.app.dexterity',
         'collective.z3cform.datagridfield',
-        'httpx>=0.28.1',
+        'httpx2',
+        'authlib>=1.7.2',
     ],
     extras_require={
         'fingerpointing': [

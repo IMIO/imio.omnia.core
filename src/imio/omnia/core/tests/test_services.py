@@ -3,7 +3,7 @@ import unittest
 from unittest.mock import MagicMock
 from unittest.mock import patch
 
-import httpx
+import httpx2
 from plone.app.testing import setRoles
 from plone.app.testing import TEST_USER_ID
 
@@ -86,7 +86,7 @@ class TestServiceHeadersAndTransport(unittest.TestCase):
         )
 
     @patch("imio.omnia.core.services.fplog")
-    @patch("imio.omnia.core.services.httpx.request")
+    @patch("imio.omnia.core.services.httpx2.request")
     def test_send_builds_request_and_logs_success(self, mock_request, mock_fplog):
         set_setting("core_api_url", "https://api.example.com")
         set_application_id("omnia-app")
@@ -117,7 +117,7 @@ class TestServiceHeadersAndTransport(unittest.TestCase):
 
     @patch("imio.omnia.core.services.logger.warning")
     @patch("imio.omnia.core.services.fplog")
-    @patch("imio.omnia.core.services.httpx.request")
+    @patch("imio.omnia.core.services.httpx2.request")
     def test_send_logs_http_status_errors(
         self,
         mock_request,
@@ -127,7 +127,7 @@ class TestServiceHeadersAndTransport(unittest.TestCase):
         set_setting("core_api_url", "https://api.example.com")
         response = MagicMock()
         response.status_code = 422
-        error = httpx.HTTPStatusError(
+        error = httpx2.HTTPStatusError(
             "bad request",
             request=MagicMock(),
             response=response,
@@ -136,7 +136,7 @@ class TestServiceHeadersAndTransport(unittest.TestCase):
 
         service = OmniaCoreAPIService(self.portal, self.request)
 
-        with self.assertRaises(httpx.HTTPStatusError):
+        with self.assertRaises(httpx2.HTTPStatusError):
             service.send("POST", "/v1/agents/improve-text", json={"input": "bad"})
 
         action, details = mock_fplog.call_args[0]
@@ -146,7 +146,7 @@ class TestServiceHeadersAndTransport(unittest.TestCase):
 
     @patch("imio.omnia.core.services.logger.error")
     @patch("imio.omnia.core.services.fplog")
-    @patch("imio.omnia.core.services.httpx.request")
+    @patch("imio.omnia.core.services.httpx2.request")
     def test_send_logs_unexpected_errors(
         self,
         mock_request,
@@ -255,7 +255,7 @@ class TestOpenAIServiceMethods(unittest.TestCase):
         self.assertEqual(chunks, [{"delta": "one"}, {"delta": "two"}])
 
     @patch("imio.omnia.core.services.fplog")
-    @patch("imio.omnia.core.services.httpx.stream")
+    @patch("imio.omnia.core.services.httpx2.stream")
     def test_stream_completions_sets_headers_and_logs(self, mock_stream, mock_fplog):
         response = MagicMock()
         response.__enter__.return_value = response

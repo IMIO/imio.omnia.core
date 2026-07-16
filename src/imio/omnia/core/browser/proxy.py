@@ -4,6 +4,7 @@ import logging
 from urllib.parse import urlparse
 
 import httpx2
+from httpx2 import USE_CLIENT_DEFAULT
 from plone import api
 from plone.protect.interfaces import IDisableCSRFProtection
 from Products.Five import BrowserView
@@ -15,6 +16,7 @@ from zope.interface import implementer
 from zope.publisher.interfaces import IPublishTraverse
 
 from imio.omnia.core import _
+from imio.omnia.core import oauth
 from imio.omnia.core.interfaces import IOmniaOpenAIService
 from imio.omnia.core.services import IOmniaCoreAPIService
 from imio.omnia.core.settings import get_enable_openai_proxy
@@ -102,12 +104,13 @@ class SSEStreamIterator:
     to the browser immediately — giving us real SSE streaming.
     """
 
-    def __init__(self, client, response):
+    def __init__(self, client, response, owns_client=True):
         self._client = client
         self._response = response
         self._iter = response.iter_bytes()
         self._closed = False
         self._error_sent = False
+        self._owns_client = owns_client
 
     def __iter__(self):
         return self
@@ -135,10 +138,11 @@ class SSEStreamIterator:
                 self._response.close()
             except Exception:
                 pass
-            try:
-                self._client.close()
-            except Exception:
-                pass
+            if self._owns_client:
+                try:
+                    self._client.close()
+                except Exception:
+                    pass
 
     def __del__(self):
         self._close()
@@ -233,6 +237,7 @@ class OmniaOpenAIProxyView(BrowserView):
         service = getMultiAdapter(
             (self.context, self.request), IOmniaOpenAIService
         )
+        self.service = service
         headers = service._headers()
         headers["Content-Type"] = "application/json"
 
@@ -240,6 +245,19 @@ class OmniaOpenAIProxyView(BrowserView):
             return self._stream_response(url, headers, body)
         else:
             return self._json_response(url, headers, body)
+
+    def _get_upstream_client(self, timeout):
+        """Return (client, owns_client, send_auth) for upstream calls.
+
+        The shared OAuth client's plain send() bypasses its request()
+        override, so its token auth must be passed explicitly. A token
+        valid at send time is sufficient (bearer semantics: the gateway
+        validates when the request arrives, not per streamed chunk).
+        """
+        if self.service._use_oauth():
+            client = oauth.get_oauth_client()
+            return client, False, client.token_auth
+        return httpx2.Client(timeout=timeout), True, USE_CLIENT_DEFAULT
 
     def _stream_response(self, url, headers, body):
         """Stream SSE response back to the browser via IUnboundStreamIterator."""
@@ -250,18 +268,21 @@ class OmniaOpenAIProxyView(BrowserView):
 
         logger.debug("OpenAI proxy request body: %s", json.dumps(body))
 
-        client = httpx2.Client(timeout=120.0)
+        client = None
+        owns_client = False
         try:
-            req = client.build_request("POST", url, headers=headers, json=body)
-            upstream = client.send(req, stream=True)
+            client, owns_client, send_auth = self._get_upstream_client(timeout=120.0)
+            req = client.build_request("POST", url, headers=headers, json=body, timeout=120.0)
+            upstream = client.send(req, stream=True, auth=send_auth)
             upstream.raise_for_status()
-            return SSEStreamIterator(client, upstream)
+            return SSEStreamIterator(client, upstream, owns_client=owns_client)
         except httpx2.HTTPStatusError as exc:
             try:
                 error_body = exc.response.read().decode("utf-8", errors="replace")
             except Exception:
                 error_body = "(unreadable)"
-            client.close()
+            if owns_client:
+                client.close()
             logger.warning(
                 "OpenAI proxy upstream HTTP error: %s\nRequest body: %s\nResponse body: %s",
                 exc,
@@ -272,7 +293,8 @@ class OmniaOpenAIProxyView(BrowserView):
             response.setStatus(exc.response.status_code)
             return json.dumps({"error": str(exc)})
         except Exception:
-            client.close()
+            if owns_client:
+                client.close()
             logger.exception("OpenAI proxy streaming error")
             response.setHeader("Content-Type", "application/json")
             response.setStatus(502)
@@ -282,9 +304,11 @@ class OmniaOpenAIProxyView(BrowserView):
         """Standard JSON proxy (non-streaming)."""
         self.request.response.setHeader("Content-Type", "application/json")
         try:
-            resp = httpx2.request(
-                "POST", url, headers=headers, json=body, timeout=60.0
-            )
+            if self.service._use_oauth():
+                client = oauth.get_oauth_client()
+                resp = client.request("POST", url, headers=headers, json=body, timeout=60.0)
+            else:
+                resp = httpx2.request("POST", url, headers=headers, json=body, timeout=60.0)
             self.request.response.setStatus(resp.status_code)
             return resp.text
         except httpx2.HTTPStatusError as exc:

@@ -427,3 +427,31 @@ class TestServicesOAuthMode(unittest.TestCase):
         service = OmniaCoreAPIService(self.portal, self.request)
 
         self.assertFalse(service._use_oauth())
+
+    def test_openai_streaming_uses_oauth_client(self):
+        def handler(request):
+            self.calls.append(request)
+            if str(request.url) == "https://kc.example/token":
+                return httpx2.Response(
+                    200,
+                    json={"access_token": "tok-1", "token_type": "Bearer", "expires_in": 300},
+                )
+            return httpx2.Response(
+                200,
+                headers={"Content-Type": "text/event-stream"},
+                content=b'data: {"id": "1"}\n\ndata: [DONE]\n\n',
+            )
+
+        original = oauth._build_client
+
+        def build(cfg):
+            client = original(cfg)
+            client._transport = httpx2.MockTransport(handler)
+            return client
+
+        with patch.object(oauth, "_build_client", build):
+            service = OmniaOpenAIService(self.portal, self.request)
+            chunks = list(service.chat_completions("m", [{"role": "user", "content": "hi"}], stream=True))
+
+        self.assertEqual(chunks, [{"id": "1"}])
+        self.assertEqual(self.calls[-1].headers["Authorization"], "Bearer tok-1")

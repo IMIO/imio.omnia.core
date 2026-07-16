@@ -143,13 +143,13 @@ Set via buildout `environment-vars` or shell. Synced to registry on startup via 
 | `OMNIA_ORGANIZATION_ID` | `organization_id` |
 | `OMNIA_AUTH_TYPE` | `auth_type` |
 | `OMNIA_OAUTH_GRANT_TYPE` | `oauth_grant_type` |
-| `OMNIA_OAUTH_CLIENT_ID` | `oauth_client_id` |
-| `OMNIA_OAUTH_CLIENT_SECRET` | `oauth_client_secret` |
-| `OMNIA_OAUTH_TOKEN_URL` | `oauth_token_url` |
+| `SSO_APPS_CLIENT_ID` | `oauth_client_id` |
+| `SSO_APPS_CLIENT_SECRET` | `oauth_client_secret` |
+| `SSO_APPS_URL` | `oauth_token_url` |
 | `OMNIA_OAUTH_SCOPE` | `oauth_scope` |
 | `OMNIA_OAUTH_CLIENT_AUTH_METHOD` | `oauth_client_auth_method` |
-| `OMNIA_OAUTH_USERNAME` | `oauth_username` |
-| `OMNIA_OAUTH_PASSWORD` | `oauth_password` |
+| `SSO_APPS_USER_USERNAME` | `oauth_username` |
+| `SSO_APPS_USER_PASSWORD` | `oauth_password` |
 
 ## Architecture notes
 

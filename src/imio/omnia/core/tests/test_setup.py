@@ -124,6 +124,23 @@ class TestSetup(unittest.TestCase):
             )
         )
 
+    def test_profile_version_is_1001(self):
+        setup_tool = api.portal.get_tool("portal_setup")
+        self.assertEqual(
+            setup_tool.getLastVersionForProfile("imio.omnia.core:default"),
+            ("1001",),
+        )
+
+    def test_upgrade_step_1000_to_1001_registered(self):
+        from Products.GenericSetup.upgrade import listUpgradeSteps
+
+        setup_tool = api.portal.get_tool("portal_setup")
+        steps = listUpgradeSteps(setup_tool, "imio.omnia.core:default", "1000")
+        self.assertTrue(
+            any(step["dest"] == ("1001",) for step in steps),
+            "No upgrade step from 1000 to 1001 registered",
+        )
+
 
 class TestUninstall(unittest.TestCase):
 

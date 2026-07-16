@@ -285,6 +285,49 @@ class TestSyncEnvToRegistry(unittest.TestCase):
         self.assertEqual(mock_set_site.call_args_list[-1].args, (None,))
         self.assertTrue(connection.closed)
 
+    @patch("imio.omnia.core.settings.setSite")
+    @patch("imio.omnia.core.settings.transaction.commit")
+    @patch.dict(
+        os.environ,
+        {
+            "SITE_ID": "Plone",
+            "OMNIA_AUTH_TYPE": "oauth2",
+            "OMNIA_OAUTH_GRANT_TYPE": "password",
+            "OMNIA_OAUTH_CLIENT_ID": "my-client",
+            "OMNIA_OAUTH_CLIENT_SECRET": "my-secret",
+            "OMNIA_OAUTH_TOKEN_URL": "https://kc.example/token",
+            "OMNIA_OAUTH_SCOPE": "profile",
+            "OMNIA_OAUTH_CLIENT_AUTH_METHOD": "client_secret_post",
+            "OMNIA_OAUTH_USERNAME": "svc",
+            "OMNIA_OAUTH_PASSWORD": "pw",
+        },
+        clear=True,
+    )
+    def test_sync_env_to_registry_syncs_oauth_settings(self, mock_commit, mock_set_site):
+        prefix = "imio.omnia.IOmniaCoreSettings"
+        registry = {
+            f"{prefix}.auth_type": "bearer",
+            f"{prefix}.oauth_grant_type": "password",
+            f"{prefix}.oauth_client_id": "",
+            f"{prefix}.oauth_client_secret": "",
+            f"{prefix}.oauth_token_url": "",
+            f"{prefix}.oauth_scope": "",
+            f"{prefix}.oauth_client_auth_method": "client_secret_basic",
+            f"{prefix}.oauth_username": "",
+            f"{prefix}.oauth_password": "",
+        }
+        site = DummySite(registry)
+        event, connection, _database = self._event_for({"Application": {"Plone": site}})
+
+        sync_env_to_registry(event)
+
+        self.assertEqual(registry[f"{prefix}.auth_type"], "oauth2")
+        self.assertEqual(registry[f"{prefix}.oauth_client_id"], "my-client")
+        self.assertEqual(registry[f"{prefix}.oauth_client_auth_method"], "client_secret_post")
+        self.assertEqual(registry[f"{prefix}.oauth_password"], "pw")
+        mock_commit.assert_called_once()
+        self.assertTrue(connection.closed)
+
     @patch("imio.omnia.core.settings.logger.exception")
     @patch("imio.omnia.core.settings.transaction.abort")
     @patch("imio.omnia.core.settings.setSite")

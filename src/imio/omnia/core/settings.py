@@ -15,6 +15,15 @@ ENV_MAPPING = {
     "openai_api_key": "OMNIA_OPENAI_API_KEY",
     "application_id": "OMNIA_APPLICATION_ID",
     "organization_id": "OMNIA_ORGANIZATION_ID",
+    "auth_type": "OMNIA_AUTH_TYPE",
+    "oauth_grant_type": "OMNIA_OAUTH_GRANT_TYPE",
+    "oauth_client_id": "OMNIA_OAUTH_CLIENT_ID",
+    "oauth_client_secret": "OMNIA_OAUTH_CLIENT_SECRET",
+    "oauth_token_url": "OMNIA_OAUTH_TOKEN_URL",
+    "oauth_scope": "OMNIA_OAUTH_SCOPE",
+    "oauth_client_auth_method": "OMNIA_OAUTH_CLIENT_AUTH_METHOD",
+    "oauth_username": "OMNIA_OAUTH_USERNAME",
+    "oauth_password": "OMNIA_OAUTH_PASSWORD",
 }
 
 

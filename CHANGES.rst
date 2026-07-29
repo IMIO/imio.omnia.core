@@ -15,6 +15,8 @@ Changelog
   [duchenean]
 - DELIBE-322: Replace ``httpx`` with ``httpx2`` (maintained pydantic fork).
   [duchenean]
+- Removed the unused Vite/React scaffold from ``browser/resources``.
+  [duchenean]
 
 
 1.0a2 (2026-04-03)

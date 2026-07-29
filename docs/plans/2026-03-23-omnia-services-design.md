@@ -11,8 +11,8 @@ The Organization ID must be customizable per-context via a Zope adapter so subpa
 
 ## API References
 
-- Core API: https://ipa.imio.be/imio/omnia/core/openapi.json
-- OpenAI Gateway: https://ipa.imio.be/imio/omnia/openai/openapi.json
+- Core API: `/imio/omnia/core/openapi.json` on the iMio API gateway
+- OpenAI Gateway: `/imio/omnia/openai/openapi.json` on the iMio API gateway
 
 ## Design
 

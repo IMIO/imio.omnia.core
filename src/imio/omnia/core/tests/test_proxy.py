@@ -256,7 +256,7 @@ class TestOpenAIProxyOAuthMode(unittest.TestCase):
         alsoProvides(self.request, IImioOmniaCoreLayer)
         setRoles(self.portal, TEST_USER_ID, ["Manager"])
         set_enable_openai_proxy(True)
-        set_openai_api_url("https://ipa.imio.be/imio/omnia/llm/gateway/v1")
+        set_openai_api_url("https://omnia.test.imio.be/imio/omnia/llm/gateway/v1")
         set_openai_auth_type("oauth2")
         for field, value in [
             ("oauth_grant_type", "password"),

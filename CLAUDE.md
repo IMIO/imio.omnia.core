@@ -10,8 +10,7 @@ src/imio/omnia/core/
 │   ├── controlpanel.py          # @@omnia-ai-settings registry form + tabbed wrapper
 │   ├── menu.py                  # "AI assistant" content menu + action providers
 │   ├── controlpanel_layout.pt   # Tabbed control panel page template
-│   ├── resources/               # Vite + React frontend (dev: npm run dev, build: npm run build)
-│   ├── static/                  # Omnia SVG icons
+│   ├── static/                  # Omnia SVG icons + control panel JS
 │   ├── overrides/               # z3c.jbot template overrides
 │   └── configure.zcml           # Browser layer, views, menu, adapter registrations
 ├── profiles/
@@ -66,15 +65,6 @@ tox -e py312-lint               # isort + flake8
 tox -e isort-apply              # Fix import order
 ```
 
-### Frontend assets
-
-```bash
-cd src/imio/omnia/core/browser/resources
-npm install
-npm run dev                     # Vite dev server
-npm run build                   # Production build
-```
-
 ## Code style
 
 - Formatter: **Black** (line length 120)
@@ -113,9 +103,9 @@ Stored under `imio.omnia.core.browser.controlpanel.IOmniaCoreSettings`:
 
 Two HTTP client adapters wrapping the iMio Omnia APIs. Both are multi-adapters on `(context, request)`.
 
-**OmniaCoreAPIService** (`IOmniaCoreAPIService`): wraps `/imio/omnia/core/v1/agents/` — text expansion, improvement, reduction, correction, translation, accessibility, title suggestion, meeting notes conversion, content categorization, metadata extraction. API spec: https://ipa.imio.be/imio/omnia/core/openapi.json
+**OmniaCoreAPIService** (`IOmniaCoreAPIService`): wraps `/imio/omnia/core/v1/agents/` — text expansion, improvement, reduction, correction, translation, accessibility, title suggestion, meeting notes conversion, content categorization, metadata extraction. API spec: `/imio/omnia/core/openapi.json` on the iMio API gateway.
 
-**OmniaOpenAIService** (`IOmniaOpenAIService`): wraps `/imio/omnia/openai/v1/` — OpenAI-compatible gateway with `list_models()` and `chat_completions()` (supports streaming). API spec: https://ipa.imio.be/imio/omnia/openai/openapi.json
+**OmniaOpenAIService** (`IOmniaOpenAIService`): OpenAI-compatible LLM gateway with `list_models()` and `chat_completions()` (supports streaming). The base URL comes from the `openai_api_url` registry setting.
 
 Usage:
 ```python

@@ -59,7 +59,7 @@ class TestServiceHeadersAndTransport(unittest.TestCase):
         self.assertEqual(service._headers(), {})
 
     def test_openai_headers_keep_imio_headers_for_imio_host(self):
-        set_setting("openai_api_url", "https://ipa.imio.be/imio/omnia/openai/v1")
+        set_setting("openai_api_url", "https://omnia.test.imio.be/imio/omnia/openai/v1")
         set_application_id("omnia-app")
         set_organization_id("namur")
         set_openai_api_key("secret-token")
@@ -276,7 +276,7 @@ class TestOpenAIServiceMethods(unittest.TestCase):
         response.raise_for_status.return_value = None
         mock_stream.return_value = response
         service = OmniaOpenAIService(self.portal, self.request)
-        set_setting("openai_api_url", "https://ipa.imio.be/imio/omnia/openai/v1")
+        set_setting("openai_api_url", "https://omnia.test.imio.be/imio/omnia/openai/v1")
         set_setting("openai_extra_headers", {"X-Test": "extra"})
 
         result = list(
@@ -291,7 +291,7 @@ class TestOpenAIServiceMethods(unittest.TestCase):
         _, url = mock_stream.call_args[0]
         self.assertEqual(
             url,
-            "https://ipa.imio.be/imio/omnia/openai/v1/chat/completions",
+            "https://omnia.test.imio.be/imio/omnia/openai/v1/chat/completions",
         )
         self.assertEqual(
             mock_stream.call_args[1]["headers"]["Content-Type"],
@@ -357,8 +357,8 @@ class TestServicesOAuthMode(unittest.TestCase):
         setRoles(self.portal, TEST_USER_ID, ["Manager"])
         set_core_auth_type("oauth2")
         set_openai_auth_type("oauth2")
-        set_setting("core_api_url", "https://ipa.imio.be/imio/omnia/core")
-        set_setting("openai_api_url", "https://ipa.imio.be/imio/omnia/llm/gateway/v1")
+        set_setting("core_api_url", "https://omnia.test.imio.be/imio/omnia/core")
+        set_setting("openai_api_url", "https://omnia.test.imio.be/imio/omnia/llm/gateway/v1")
         set_setting("openai_extra_headers", {})
         set_application_id("omnia-app")
         set_organization_id("namur")

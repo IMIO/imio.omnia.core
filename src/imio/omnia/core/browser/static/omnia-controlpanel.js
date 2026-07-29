@@ -14,6 +14,7 @@
     "oauth_password",
   ];
   var ROPC_FIELDS = ["oauth_username", "oauth_password"];
+  var OPENAI_API_KEY_FIELDS = ["openai_api_key"];
 
   function row(name) {
     return document.getElementById("formfield-form-widgets-" + name);
@@ -29,21 +30,31 @@
   }
 
   function toggle() {
-    var authType = document.getElementById("form-widgets-auth_type");
+    var coreAuthType = document.getElementById("form-widgets-core_auth_type");
+    var openaiAuthType = document.getElementById("form-widgets-openai_auth_type");
     var grantType = document.getElementById("form-widgets-oauth_grant_type");
-    if (!authType) {
+    if (!coreAuthType && !openaiAuthType) {
       return;
     }
-    var oauth = authType.value === "oauth2";
+    var oauth =
+      (coreAuthType && coreAuthType.value === "oauth2") ||
+      (openaiAuthType && openaiAuthType.value === "oauth2");
     setVisible(OAUTH_FIELDS, oauth);
     if (oauth && grantType) {
       setVisible(ROPC_FIELDS, grantType.value === "password");
+    }
+    if (openaiAuthType) {
+      setVisible(OPENAI_API_KEY_FIELDS, openaiAuthType.value === "api_key");
     }
   }
 
   function init() {
     toggle();
-    ["form-widgets-auth_type", "form-widgets-oauth_grant_type"].forEach(function (id) {
+    [
+      "form-widgets-core_auth_type",
+      "form-widgets-openai_auth_type",
+      "form-widgets-oauth_grant_type",
+    ].forEach(function (id) {
       var el = document.getElementById(id);
       if (el) {
         el.addEventListener("change", toggle);

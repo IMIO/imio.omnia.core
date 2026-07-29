@@ -3,5 +3,5 @@
 
 
 def upgrade_1000_to_1001(context):
-    """OIA-241: create the auth_type / oauth_* registry records."""
+    """OIA-241: create the core_auth_type / openai_auth_type / oauth_* registry records."""
     context.runImportStepFromProfile("profile-imio.omnia.core:default", "plone.app.registry")

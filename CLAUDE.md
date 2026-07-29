@@ -98,7 +98,8 @@ Stored under `imio.omnia.core.browser.controlpanel.IOmniaCoreSettings`:
 - `openai_api_url` — OpenAI API URL
 - `application_id` — Application ID
 - `organization_id` — Organization ID
-- `auth_type` — authentication type (bearer/oauth2)
+- `core_auth_type` — Omnia Core API authentication (none/oauth2)
+- `openai_auth_type` — OpenAI gateway authentication (none/api_key/oauth2)
 - `oauth_grant_type` — OAuth 2.0 grant type (password / client_credentials)
 - `oauth_client_id` — OAuth 2.0 client ID
 - `oauth_client_secret` — OAuth 2.0 client secret
@@ -127,7 +128,7 @@ result = service.improve_text("Le projet va bien.")
 
 Both services send `x-imio-application` (from registry) and `x-imio-municipality` (from `IOrganizationIDProvider` adapter) headers on every request.
 
-When `auth_type=oauth2`, both services authenticate with a Keycloak SSO-Apps Bearer token obtained by a process-level shared client (`oauth.py`, an authlib-on-httpx2 port, with eager token refresh under a lock). The OpenAI service only applies this for iMio-hosted URLs — external OpenAI-compatible providers keep using the static `openai_api_key`.
+Each service authenticates independently via its own registry field (`core_auth_type` for the Omnia Core API, `openai_auth_type` for the OpenAI gateway). When a service's scheme is `oauth2`, it authenticates with a Keycloak SSO-Apps Bearer token obtained by a process-level shared client (`oauth.py`, an authlib-on-httpx2 port, with eager token refresh under a lock); credentials are shared across services (one Keycloak client per application). The OpenAI service additionally enforces a leak guard: `openai_auth_type=oauth2` against a non-iMio-hosted `openai_api_url` raises `ValueError` rather than silently sending the SSO-Apps JWT to a third party. `openai_auth_type=api_key` sends the static `openai_api_key` instead; `none` sends no authentication for either service.
 
 ## Environment variables
 
@@ -141,7 +142,8 @@ Set via buildout `environment-vars` or shell. Synced to registry on startup via 
 | `OMNIA_OPENAI_API_KEY` | `openai_api_key` |
 | `OMNIA_APPLICATION_ID` | `application_id` |
 | `OMNIA_ORGANIZATION_ID` | `organization_id` |
-| `OMNIA_AUTH_TYPE` | `auth_type` |
+| `OMNIA_CORE_AUTH_TYPE` | `core_auth_type` |
+| `OMNIA_OPENAI_AUTH_TYPE` | `openai_auth_type` |
 | `OMNIA_OAUTH_GRANT_TYPE` | `oauth_grant_type` |
 | `SSO_APPS_CLIENT_ID` | `oauth_client_id` |
 | `SSO_APPS_CLIENT_SECRET` | `oauth_client_secret` |

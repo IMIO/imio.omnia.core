@@ -16,7 +16,6 @@ from imio.omnia.core.interfaces import IOrganizationIDProvider, IOmniaCoreAPISer
 from imio.omnia.core.settings import (
     get_api_timeout,
     get_application_id,
-    get_auth_type,
     get_openai_api_key,
     get_openai_extra_headers,
     get_setting,
@@ -29,6 +28,8 @@ class BaseOmniaService:
     """Shared HTTP logic for Omnia service adapters."""
 
     registry_url_field = None  # override in subclasses
+    auth_type_field = "core_auth_type"  # override in subclasses
+    default_auth_type = "none"  # override in subclasses
 
     def __init__(self, context, request):
         self.context = context
@@ -49,8 +50,11 @@ class BaseOmniaService:
             headers["x-imio-municipality"] = organization_id
         return headers
 
+    def _auth_type(self):
+        return get_setting(self.auth_type_field, default=self.default_auth_type)
+
     def _use_oauth(self):
-        return get_auth_type() == "oauth2"
+        return self._auth_type() == "oauth2"
 
     def _log_request(self, path, duration_ms, exc=None, extra=""):
         segment = path.rstrip("/").rsplit("/", 1)[-1] or path  # We'll keep just the action to keep the log shorter
@@ -164,11 +168,25 @@ class OmniaCoreAPIService(BaseOmniaService):
 @implementer(IOmniaOpenAIService)
 class OmniaOpenAIService(BaseOmniaService):
     registry_url_field = "openai_api_url"
+    auth_type_field = "openai_auth_type"
+    default_auth_type = "api_key"
 
     def _use_oauth(self):
-        # OAuth only against iMio-hosted gateways; external providers
-        # (e.g. openai.com) keep the static API key.
-        return super()._use_oauth() and "imio.be" in urlparse(self.base_url).netloc
+        """Return whether this request should use the shared OAuth2 client.
+
+        This host check is a *leak guard*, not routing logic: if the admin
+        configured openai_auth_type=oauth2 against a non-iMio-hosted gateway
+        (e.g. api.openai.com), refuse rather than silently sending the iMio
+        Keycloak SSO-Apps JWT to a third party.
+        """
+        if not super()._use_oauth():
+            return False
+        if "imio.be" not in urlparse(self.base_url).netloc:
+            raise ValueError(
+                "openai_auth_type=oauth2 but openai_api_url host is not iMio-hosted; "
+                "refusing to send the SSO-Apps token to a third party"
+            )
+        return True
 
     def _headers(self):
         # Only send iMio-specific headers (x-imio-application, x-imio-municipality)
@@ -177,7 +195,7 @@ class OmniaOpenAIService(BaseOmniaService):
             headers = super()._headers()
         else:
             headers = {}
-        if not self._use_oauth():
+        if self._auth_type() == "api_key":
             api_key = get_openai_api_key()
             if api_key:
                 headers["Authorization"] = f"Bearer {api_key}"

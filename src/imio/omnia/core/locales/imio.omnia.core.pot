@@ -104,14 +104,6 @@ msgid "The Omnia API is not responding. Try a smaller context or try again later
 msgstr ""
 
 #: ../browser/controlpanel.py
-msgid "Bearer (static API key)"
-msgstr ""
-
-#: ../browser/controlpanel.py
-msgid "OAuth 2.0"
-msgstr ""
-
-#: ../browser/controlpanel.py
 msgid "Password Credentials (ROPC)"
 msgstr ""
 
@@ -128,11 +120,31 @@ msgid "Request body (client_secret_post)"
 msgstr ""
 
 #: ../browser/controlpanel.py
-msgid "Authentication type"
+msgid "Omnia Core API authentication"
 msgstr ""
 
 #: ../browser/controlpanel.py
-msgid "How outbound Omnia API requests authenticate."
+msgid "How outbound requests to the Omnia Core API authenticate."
+msgstr ""
+
+#: ../browser/controlpanel.py
+msgid "OpenAI gateway authentication"
+msgstr ""
+
+#: ../browser/controlpanel.py
+msgid "How outbound requests to the OpenAI-compatible gateway authenticate. \"Static API key\" sends the OpenAI API Key below."
+msgstr ""
+
+#: ../browser/controlpanel.py
+msgid "None (no authentication)"
+msgstr ""
+
+#: ../browser/controlpanel.py
+msgid "Static API key"
+msgstr ""
+
+#: ../browser/controlpanel.py
+msgid "OAuth 2.0 (Keycloak SSO-Apps)"
 msgstr ""
 
 #: ../browser/controlpanel.py

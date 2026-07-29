@@ -5,7 +5,7 @@
 
   <genericsetup:upgradeStep
     title="OIA-241: register OAuth2 registry records"
-    description="Re-imports the registry step so the new auth_type / oauth_* records exist."
+    description="Re-imports the registry step so the new core_auth_type / openai_auth_type / oauth_* records exist."
     source="1000"
     destination="1001"
     handler=".upgrades.upgrade_1000_to_1001"

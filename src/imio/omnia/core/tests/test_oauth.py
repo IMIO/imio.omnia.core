@@ -109,7 +109,8 @@ class TestOAuthClientFactory(unittest.TestCase):
     def setUp(self):
         self.portal = self.layer["portal"]
         setRoles(self.portal, TEST_USER_ID, ["Manager"])
-        set_setting("auth_type", "oauth2")
+        set_setting("core_auth_type", "oauth2")
+        set_setting("openai_auth_type", "oauth2")
         set_setting("oauth_grant_type", "password")
         set_setting("oauth_client_id", "cid")
         set_setting("oauth_client_secret", "sec")
@@ -123,7 +124,8 @@ class TestOAuthClientFactory(unittest.TestCase):
 
     def tearDown(self):
         oauth.reset_oauth_client()
-        set_setting("auth_type", "bearer")
+        set_setting("core_auth_type", "none")
+        set_setting("openai_auth_type", "api_key")
 
     def _handler(self, request):
         self.token_calls.append(request.content.decode())

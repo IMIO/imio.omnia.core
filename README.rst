@@ -80,7 +80,8 @@ Variable                            Registry field
 ``OMNIA_OPENAI_API_KEY``            ``openai_api_key``
 ``OMNIA_APPLICATION_ID``            ``application_id``
 ``OMNIA_ORGANIZATION_ID``           ``organization_id``
-``OMNIA_AUTH_TYPE``                 ``auth_type``
+``OMNIA_CORE_AUTH_TYPE``            ``core_auth_type``
+``OMNIA_OPENAI_AUTH_TYPE``          ``openai_auth_type``
 ``OMNIA_OAUTH_GRANT_TYPE``          ``oauth_grant_type``
 ``SSO_APPS_CLIENT_ID``              ``oauth_client_id``
 ``SSO_APPS_CLIENT_SECRET``          ``oauth_client_secret``

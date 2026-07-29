@@ -10,22 +10,24 @@ from plone.app.testing import setRoles
 from plone.app.testing import TEST_USER_ID
 
 from imio.omnia.core.settings import get_application_id
-from imio.omnia.core.settings import get_auth_type
 from imio.omnia.core.settings import get_core_api_url
+from imio.omnia.core.settings import get_core_auth_type
 from imio.omnia.core.settings import get_enable_openai_proxy
 from imio.omnia.core.settings import get_enable_proxy
 from imio.omnia.core.settings import get_openai_api_key
 from imio.omnia.core.settings import get_openai_api_url
+from imio.omnia.core.settings import get_openai_auth_type
 from imio.omnia.core.settings import get_openai_extra_headers
 from imio.omnia.core.settings import get_organization_id
 from imio.omnia.core.settings import get_setting
 from imio.omnia.core.settings import set_application_id
-from imio.omnia.core.settings import set_auth_type
 from imio.omnia.core.settings import set_core_api_url
+from imio.omnia.core.settings import set_core_auth_type
 from imio.omnia.core.settings import set_enable_openai_proxy
 from imio.omnia.core.settings import set_enable_proxy
 from imio.omnia.core.settings import set_openai_api_key
 from imio.omnia.core.settings import set_openai_api_url
+from imio.omnia.core.settings import set_openai_auth_type
 from imio.omnia.core.settings import set_organization_id
 from imio.omnia.core.settings import set_setting
 from imio.omnia.core.settings import sync_env_to_registry
@@ -77,7 +79,8 @@ class TestSettingsAccessors(unittest.TestCase):
         set_enable_proxy(False)
         set_enable_openai_proxy(False)
         set_setting("openai_extra_headers", {})
-        set_setting("auth_type", "bearer")
+        set_setting("core_auth_type", "none")
+        set_setting("openai_auth_type", "api_key")
         set_setting("oauth_grant_type", "password")
         set_setting("oauth_client_auth_method", "client_secret_basic")
         for field in (
@@ -130,12 +133,28 @@ class TestSettingsAccessors(unittest.TestCase):
         set_setting("openai_extra_headers", {"X-Test": "extra"})
         self.assertEqual(get_openai_extra_headers(), {"X-Test": "extra"})
 
-    def test_auth_type_defaults_to_bearer(self):
-        self.assertEqual(get_auth_type(), "bearer")
+    def test_core_auth_type_defaults_to_none(self):
+        self.assertEqual(get_core_auth_type(), "none")
+
+    def test_openai_auth_type_defaults_to_api_key(self):
+        self.assertEqual(get_openai_auth_type(), "api_key")
+
+    def test_core_auth_type_round_trip(self):
+        set_core_auth_type("oauth2")
+        self.assertEqual(get_core_auth_type(), "oauth2")
+        set_core_auth_type("none")
+        self.assertEqual(get_core_auth_type(), "none")
+
+    def test_openai_auth_type_round_trip(self):
+        set_openai_auth_type("oauth2")
+        self.assertEqual(get_openai_auth_type(), "oauth2")
+        set_openai_auth_type("none")
+        self.assertEqual(get_openai_auth_type(), "none")
+        set_openai_auth_type("api_key")
+        self.assertEqual(get_openai_auth_type(), "api_key")
 
     def test_oauth_settings_round_trip(self):
         cases = [
-            ("auth_type", "oauth2"),
             ("oauth_grant_type", "client_credentials"),
             ("oauth_client_id", "imio-apps-deliberationsbe"),
             ("oauth_client_secret", "s3cr3t"),
@@ -149,8 +168,6 @@ class TestSettingsAccessors(unittest.TestCase):
             with self.subTest(field=field):
                 set_setting(field, value)
                 self.assertEqual(get_setting(field), value)
-        set_auth_type("bearer")
-        self.assertEqual(get_auth_type(), "bearer")
 
 
 class TestSyncEnvToRegistry(unittest.TestCase):
@@ -291,7 +308,8 @@ class TestSyncEnvToRegistry(unittest.TestCase):
         os.environ,
         {
             "SITE_ID": "Plone",
-            "OMNIA_AUTH_TYPE": "oauth2",
+            "OMNIA_CORE_AUTH_TYPE": "oauth2",
+            "OMNIA_OPENAI_AUTH_TYPE": "oauth2",
             "OMNIA_OAUTH_GRANT_TYPE": "password",
             "SSO_APPS_CLIENT_ID": "my-client",
             "SSO_APPS_CLIENT_SECRET": "my-secret",
@@ -306,7 +324,8 @@ class TestSyncEnvToRegistry(unittest.TestCase):
     def test_sync_env_to_registry_syncs_oauth_settings(self, mock_commit, mock_set_site):
         prefix = "imio.omnia.IOmniaCoreSettings"
         registry = {
-            f"{prefix}.auth_type": "bearer",
+            f"{prefix}.core_auth_type": "none",
+            f"{prefix}.openai_auth_type": "api_key",
             f"{prefix}.oauth_grant_type": "password",
             f"{prefix}.oauth_client_id": "",
             f"{prefix}.oauth_client_secret": "",
@@ -321,7 +340,8 @@ class TestSyncEnvToRegistry(unittest.TestCase):
 
         sync_env_to_registry(event)
 
-        self.assertEqual(registry[f"{prefix}.auth_type"], "oauth2")
+        self.assertEqual(registry[f"{prefix}.core_auth_type"], "oauth2")
+        self.assertEqual(registry[f"{prefix}.openai_auth_type"], "oauth2")
         self.assertEqual(registry[f"{prefix}.oauth_client_id"], "my-client")
         self.assertEqual(registry[f"{prefix}.oauth_client_auth_method"], "client_secret_post")
         self.assertEqual(registry[f"{prefix}.oauth_password"], "pw")

@@ -12,10 +12,18 @@ from zope.interface import Interface
 from zope.schema.vocabulary import SimpleTerm
 from zope.schema.vocabulary import SimpleVocabulary
 
-AUTH_TYPES = SimpleVocabulary(
+CORE_AUTH_TYPES = SimpleVocabulary(
     [
-        SimpleTerm("bearer", "bearer", _("Bearer (static API key)")),
-        SimpleTerm("oauth2", "oauth2", _("OAuth 2.0")),
+        SimpleTerm("none", "none", _("None (no authentication)")),
+        SimpleTerm("oauth2", "oauth2", _("OAuth 2.0 (Keycloak SSO-Apps)")),
+    ]
+)
+
+OPENAI_AUTH_TYPES = SimpleVocabulary(
+    [
+        SimpleTerm("none", "none", _("None (no authentication)")),
+        SimpleTerm("api_key", "api_key", _("Static API key")),
+        SimpleTerm("oauth2", "oauth2", _("OAuth 2.0 (Keycloak SSO-Apps)")),
     ]
 )
 
@@ -91,11 +99,22 @@ class IOmniaCoreSettings(Interface):
         default=30,
     )
 
-    auth_type = schema.Choice(
-        title=_("Authentication type"),
-        description=_("How outbound Omnia API requests authenticate."),
-        vocabulary=AUTH_TYPES,
-        default="bearer",
+    core_auth_type = schema.Choice(
+        title=_("Omnia Core API authentication"),
+        description=_("How outbound requests to the Omnia Core API authenticate."),
+        vocabulary=CORE_AUTH_TYPES,
+        default="none",
+        required=False,
+    )
+
+    openai_auth_type = schema.Choice(
+        title=_("OpenAI gateway authentication"),
+        description=_(
+            "How outbound requests to the OpenAI-compatible gateway authenticate. "
+            '"Static API key" sends the OpenAI API Key below.'
+        ),
+        vocabulary=OPENAI_AUTH_TYPES,
+        default="api_key",
         required=False,
     )
 

@@ -11,8 +11,9 @@ from imio.omnia.core import oauth
 from imio.omnia.core.services import OmniaCoreAPIService
 from imio.omnia.core.services import OmniaOpenAIService
 from imio.omnia.core.settings import set_application_id
-from imio.omnia.core.settings import set_auth_type
+from imio.omnia.core.settings import set_core_auth_type
 from imio.omnia.core.settings import set_openai_api_key
+from imio.omnia.core.settings import set_openai_auth_type
 from imio.omnia.core.settings import set_organization_id
 from imio.omnia.core.settings import set_setting
 from imio.omnia.core.testing import IMIO_OMNIA_CORE_INTEGRATION_TESTING
@@ -345,7 +346,8 @@ class TestServicesOAuthMode(unittest.TestCase):
         self.portal = self.layer["portal"]
         self.request = self.layer["request"]
         setRoles(self.portal, TEST_USER_ID, ["Manager"])
-        set_auth_type("oauth2")
+        set_core_auth_type("oauth2")
+        set_openai_auth_type("oauth2")
         set_setting("core_api_url", "https://ipa.imio.be/imio/omnia/core")
         set_setting("openai_api_url", "https://ipa.imio.be/imio/omnia/llm/gateway/v1")
         set_setting("openai_extra_headers", {})
@@ -368,7 +370,8 @@ class TestServicesOAuthMode(unittest.TestCase):
 
     def tearDown(self):
         oauth.reset_oauth_client()
-        set_auth_type("bearer")
+        set_core_auth_type("none")
+        set_openai_auth_type("api_key")
 
     def _handler(self, request):
         self.calls.append(request)
@@ -412,21 +415,51 @@ class TestServicesOAuthMode(unittest.TestCase):
         self.assertEqual(result, {"ok": True})
         self.assertEqual(self.calls[-1].headers["Authorization"], "Bearer tok-1")
 
-    def test_openai_external_host_keeps_static_api_key(self):
+    def test_openai_oauth_on_external_host_raises_leak_guard(self):
+        """openai_auth_type=oauth2 against a non-iMio host must not leak the
+        SSO-Apps JWT to a third party — fail fast with a clear ValueError."""
         set_setting("openai_api_url", "https://api.openai.example/v1")
-        set_openai_api_key("static-key")
 
         service = OmniaOpenAIService(self.portal, self.request)
 
-        self.assertFalse(service._use_oauth())
-        self.assertEqual(service._headers(), {"Authorization": "Bearer static-key"})
+        with self.assertRaises(ValueError):
+            service._use_oauth()
 
-    def test_bearer_mode_unchanged_for_core(self):
-        set_auth_type("bearer")
+    def test_none_mode_unchanged_for_core(self):
+        set_core_auth_type("none")
 
         service = OmniaCoreAPIService(self.portal, self.request)
 
         self.assertFalse(service._use_oauth())
+
+    def test_core_oauth_and_openai_api_key_combination(self):
+        """core_auth_type=oauth2 + openai_auth_type=api_key: the core service
+        carries the OAuth Bearer token while the OpenAI service sends the
+        static API key — this split was impossible with the old single
+        auth_type field."""
+        set_openai_auth_type("api_key")
+        set_openai_api_key("static-key")
+
+        with self._patched_build():
+            core_service = OmniaCoreAPIService(self.portal, self.request)
+            core_result = core_service.post_json("/v1/agents/improve-text", {"input": "hi"})
+
+        self.assertEqual(core_result, {"ok": True})
+        self.assertEqual(self.calls[-1].headers["Authorization"], "Bearer tok-1")
+
+        openai_service = OmniaOpenAIService(self.portal, self.request)
+        self.assertFalse(openai_service._use_oauth())
+        self.assertEqual(openai_service._headers().get("Authorization"), "Bearer static-key")
+
+    def test_openai_none_auth_sends_no_authorization_header(self):
+        """openai_auth_type=none must send no Authorization header at all,
+        even when a static openai_api_key is configured."""
+        set_openai_auth_type("none")
+        set_openai_api_key("static-key")
+
+        service = OmniaOpenAIService(self.portal, self.request)
+
+        self.assertNotIn("Authorization", service._headers())
 
     def test_openai_streaming_uses_oauth_client(self):
         def handler(request):

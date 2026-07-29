@@ -17,7 +17,7 @@ from imio.omnia.core.browser.proxy import OmniaProxyView
 from imio.omnia.core.browser.proxy import SSEStreamIterator
 from imio.omnia.core.interfaces import IImioOmniaCoreLayer
 from imio.omnia.core.settings import get_enable_proxy, set_enable_proxy
-from imio.omnia.core.settings import set_auth_type
+from imio.omnia.core.settings import set_openai_auth_type
 from imio.omnia.core.settings import set_enable_openai_proxy
 from imio.omnia.core.settings import set_openai_api_url
 from imio.omnia.core.settings import set_setting
@@ -241,7 +241,7 @@ class TestSSEStreamIteratorOwnership(unittest.TestCase):
 
 class TestOpenAIProxyOAuthMode(unittest.TestCase):
     """OmniaOpenAIProxyView must route upstream calls through the shared
-    OAuth2 client when auth_type=oauth2, and must never close it."""
+    OAuth2 client when openai_auth_type=oauth2, and must never close it."""
 
     layer = IMIO_OMNIA_CORE_INTEGRATION_TESTING
 
@@ -252,7 +252,7 @@ class TestOpenAIProxyOAuthMode(unittest.TestCase):
         setRoles(self.portal, TEST_USER_ID, ["Manager"])
         set_enable_openai_proxy(True)
         set_openai_api_url("https://ipa.imio.be/imio/omnia/llm/gateway/v1")
-        set_auth_type("oauth2")
+        set_openai_auth_type("oauth2")
         for field, value in [
             ("oauth_grant_type", "password"),
             ("oauth_client_id", "cid"),
@@ -271,7 +271,7 @@ class TestOpenAIProxyOAuthMode(unittest.TestCase):
 
     def tearDown(self):
         oauth.reset_oauth_client()
-        set_auth_type("bearer")
+        set_openai_auth_type("api_key")
         set_enable_openai_proxy(False)
 
     def _get_view(self, body, path_segments=None):

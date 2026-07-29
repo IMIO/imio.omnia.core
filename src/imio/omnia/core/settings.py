@@ -15,7 +15,8 @@ ENV_MAPPING = {
     "openai_api_key": "OMNIA_OPENAI_API_KEY",
     "application_id": "OMNIA_APPLICATION_ID",
     "organization_id": "OMNIA_ORGANIZATION_ID",
-    "auth_type": "OMNIA_AUTH_TYPE",
+    "core_auth_type": "OMNIA_CORE_AUTH_TYPE",
+    "openai_auth_type": "OMNIA_OPENAI_AUTH_TYPE",
     "oauth_grant_type": "OMNIA_OAUTH_GRANT_TYPE",
     "oauth_client_id": "SSO_APPS_CLIENT_ID",
     "oauth_client_secret": "SSO_APPS_CLIENT_SECRET",
@@ -101,12 +102,20 @@ def get_api_timeout():
     return get_setting("api_timeout", default=30)
 
 
-def get_auth_type():
-    return get_setting("auth_type", default="bearer")
+def get_core_auth_type():
+    return get_setting("core_auth_type", default="none")
 
 
-def set_auth_type(value):
-    set_setting("auth_type", value)
+def set_core_auth_type(value):
+    set_setting("core_auth_type", value)
+
+
+def get_openai_auth_type():
+    return get_setting("openai_auth_type", default="api_key")
+
+
+def set_openai_auth_type(value):
+    set_setting("openai_auth_type", value)
 
 
 def sync_env_to_registry(event):

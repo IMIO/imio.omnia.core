@@ -9,20 +9,19 @@ from imio.omnia.core import REGISTRY_PREFIX
 
 logger = logging.getLogger(__name__)
 
+# Only free-text deployment inputs are configurable through the environment.
+# The vocabulary-backed fields keep their schema defaults (oauth2 authentication,
+# password grant, client_secret_basic) so a typo in a deployment environment can
+# never persist a value the control panel would reject.
 ENV_MAPPING = {
     "core_api_url": "OMNIA_CORE_API_URL",
     "openai_api_url": "OMNIA_OPENAI_API_URL",
     "openai_api_key": "OMNIA_OPENAI_API_KEY",
     "application_id": "OMNIA_APPLICATION_ID",
     "organization_id": "OMNIA_ORGANIZATION_ID",
-    "core_auth_type": "OMNIA_CORE_AUTH_TYPE",
-    "openai_auth_type": "OMNIA_OPENAI_AUTH_TYPE",
-    "oauth_grant_type": "OMNIA_OAUTH_GRANT_TYPE",
     "oauth_client_id": "SSO_APPS_CLIENT_ID",
     "oauth_client_secret": "SSO_APPS_CLIENT_SECRET",
     "oauth_token_url": "SSO_APPS_URL",
-    "oauth_scope": "OMNIA_OAUTH_SCOPE",
-    "oauth_client_auth_method": "OMNIA_OAUTH_CLIENT_AUTH_METHOD",
     "oauth_username": "SSO_APPS_USER_USERNAME",
     "oauth_password": "SSO_APPS_USER_PASSWORD",
 }

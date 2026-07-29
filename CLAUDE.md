@@ -132,16 +132,17 @@ Set via buildout `environment-vars` or shell. Synced to registry on startup via 
 | `OMNIA_OPENAI_API_KEY` | `openai_api_key` |
 | `OMNIA_APPLICATION_ID` | `application_id` |
 | `OMNIA_ORGANIZATION_ID` | `organization_id` |
-| `OMNIA_CORE_AUTH_TYPE` | `core_auth_type` |
-| `OMNIA_OPENAI_AUTH_TYPE` | `openai_auth_type` |
-| `OMNIA_OAUTH_GRANT_TYPE` | `oauth_grant_type` |
 | `SSO_APPS_CLIENT_ID` | `oauth_client_id` |
 | `SSO_APPS_CLIENT_SECRET` | `oauth_client_secret` |
 | `SSO_APPS_URL` | `oauth_token_url` |
-| `OMNIA_OAUTH_SCOPE` | `oauth_scope` |
-| `OMNIA_OAUTH_CLIENT_AUTH_METHOD` | `oauth_client_auth_method` |
 | `SSO_APPS_USER_USERNAME` | `oauth_username` |
 | `SSO_APPS_USER_PASSWORD` | `oauth_password` |
+
+The vocabulary-backed fields (`core_auth_type`, `openai_auth_type`,
+`oauth_grant_type`, `oauth_client_auth_method`) are deliberately *not* in
+`ENV_MAPPING`: they keep their schema defaults (`oauth2`, `password`,
+`client_secret_basic`) and are changed in the control panel, so a deployment
+typo cannot persist a value the `schema.Choice` field would reject.
 
 ## Architecture notes
 

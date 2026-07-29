@@ -306,30 +306,20 @@ class TestSyncEnvToRegistry(unittest.TestCase):
         os.environ,
         {
             "SITE_ID": "Plone",
-            "OMNIA_CORE_AUTH_TYPE": "oauth2",
-            "OMNIA_OPENAI_AUTH_TYPE": "oauth2",
-            "OMNIA_OAUTH_GRANT_TYPE": "password",
             "SSO_APPS_CLIENT_ID": "my-client",
             "SSO_APPS_CLIENT_SECRET": "my-secret",
             "SSO_APPS_URL": "https://kc.example/token",
-            "OMNIA_OAUTH_SCOPE": "profile",
-            "OMNIA_OAUTH_CLIENT_AUTH_METHOD": "client_secret_post",
             "SSO_APPS_USER_USERNAME": "svc",
             "SSO_APPS_USER_PASSWORD": "pw",
         },
         clear=True,
     )
-    def test_sync_env_to_registry_syncs_oauth_settings(self, mock_commit, mock_set_site):
+    def test_sync_env_to_registry_syncs_oauth_credentials(self, mock_commit, mock_set_site):
         prefix = "imio.omnia.IOmniaCoreSettings"
         registry = {
-            f"{prefix}.core_auth_type": "none",
-            f"{prefix}.openai_auth_type": "api_key",
-            f"{prefix}.oauth_grant_type": "password",
             f"{prefix}.oauth_client_id": "",
             f"{prefix}.oauth_client_secret": "",
             f"{prefix}.oauth_token_url": "",
-            f"{prefix}.oauth_scope": "",
-            f"{prefix}.oauth_client_auth_method": "client_secret_basic",
             f"{prefix}.oauth_username": "",
             f"{prefix}.oauth_password": "",
         }
@@ -338,12 +328,49 @@ class TestSyncEnvToRegistry(unittest.TestCase):
 
         sync_env_to_registry(event)
 
-        self.assertEqual(registry[f"{prefix}.core_auth_type"], "oauth2")
-        self.assertEqual(registry[f"{prefix}.openai_auth_type"], "oauth2")
         self.assertEqual(registry[f"{prefix}.oauth_client_id"], "my-client")
-        self.assertEqual(registry[f"{prefix}.oauth_client_auth_method"], "client_secret_post")
+        self.assertEqual(registry[f"{prefix}.oauth_client_secret"], "my-secret")
+        self.assertEqual(registry[f"{prefix}.oauth_token_url"], "https://kc.example/token")
+        self.assertEqual(registry[f"{prefix}.oauth_username"], "svc")
         self.assertEqual(registry[f"{prefix}.oauth_password"], "pw")
         mock_commit.assert_called_once()
+        self.assertTrue(connection.closed)
+
+    @patch("imio.omnia.core.settings.setSite")
+    @patch("imio.omnia.core.settings.transaction.commit")
+    @patch.dict(
+        os.environ,
+        {
+            "SITE_ID": "Plone",
+            "OMNIA_CORE_AUTH_TYPE": "bogus",
+            "OMNIA_OPENAI_AUTH_TYPE": "bogus",
+            "OMNIA_OAUTH_GRANT_TYPE": "bogus",
+            "OMNIA_OAUTH_CLIENT_AUTH_METHOD": "bogus",
+            "OMNIA_OAUTH_SCOPE": "bogus",
+        },
+        clear=True,
+    )
+    def test_sync_env_to_registry_ignores_vocabulary_fields(self, mock_commit, mock_set_site):
+        """Vocabulary-backed fields are not env-configurable, so typos can't be persisted."""
+        prefix = "imio.omnia.IOmniaCoreSettings"
+        registry = {
+            f"{prefix}.core_auth_type": "oauth2",
+            f"{prefix}.openai_auth_type": "oauth2",
+            f"{prefix}.oauth_grant_type": "password",
+            f"{prefix}.oauth_client_auth_method": "client_secret_basic",
+            f"{prefix}.oauth_scope": "",
+        }
+        site = DummySite(registry)
+        event, connection, _database = self._event_for({"Application": {"Plone": site}})
+
+        sync_env_to_registry(event)
+
+        self.assertEqual(registry[f"{prefix}.core_auth_type"], "oauth2")
+        self.assertEqual(registry[f"{prefix}.openai_auth_type"], "oauth2")
+        self.assertEqual(registry[f"{prefix}.oauth_grant_type"], "password")
+        self.assertEqual(registry[f"{prefix}.oauth_client_auth_method"], "client_secret_basic")
+        self.assertEqual(registry[f"{prefix}.oauth_scope"], "")
+        mock_commit.assert_not_called()
         self.assertTrue(connection.closed)
 
     @patch("imio.omnia.core.settings.logger.exception")

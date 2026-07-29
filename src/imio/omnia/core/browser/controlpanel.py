@@ -190,7 +190,12 @@ class OmniaCoreControlPanelFormWrapper(ControlPanelFormWrapper):
         return actions
 
     def get_active_tab(self):
-        return next(filter(lambda x: x["url"].split("/")[-1] == self.request.getURL().split("/")[-1], self.tabs))
+        """Return the tab matching the current URL, or the first one as a fallback."""
+        current = self.request.getURL().split("/")[-1]
+        for tab in self.tabs:
+            if tab["url"].split("/")[-1] == current:
+                return tab
+        return self.tabs[0] if self.tabs else None
 
 
 OmniaCoreControlPanelView = layout.wrap_form(OmniaCoreControlPanelForm, OmniaCoreControlPanelFormWrapper)

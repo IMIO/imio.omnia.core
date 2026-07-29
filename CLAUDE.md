@@ -10,8 +10,7 @@ src/imio/omnia/core/
 │   ├── controlpanel.py          # @@omnia-ai-settings registry form + tabbed wrapper
 │   ├── menu.py                  # "AI assistant" content menu + action providers
 │   ├── controlpanel_layout.pt   # Tabbed control panel page template
-│   ├── resources/               # Vite + React frontend (dev: npm run dev, build: npm run build)
-│   ├── static/                  # Omnia SVG icons
+│   ├── static/                  # Omnia SVG icons + control panel JS
 │   ├── overrides/               # z3c.jbot template overrides
 │   └── configure.zcml           # Browser layer, views, menu, adapter registrations
 ├── profiles/
@@ -25,6 +24,8 @@ src/imio/omnia/core/
 ├── interfaces.py                # IImioOmniaCoreLayer, IImioOmniaControlPanelFieldProvider, IOmniaActionsProvider, IOrganizationIDProvider
 ├── services.py                  # IOmniaCoreAPIService, IOmniaOpenAIService, OrganizationIDProvider
 ├── settings.py                  # Env var → registry sync on startup (IDatabaseOpenedWithRoot)
+├── oauth.py                     # OAuth 2.0 client (authlib-on-httpx2 port) + process-level shared client
+├── upgrades.py                  # GenericSetup upgrade steps
 ├── testing.py                   # IMIO_OMNIA_CORE_*_TESTING fixtures
 ├── setuphandlers.py             # HiddenProfiles, post_install, uninstall hooks
 ├── configure.zcml               # Root ZCML — profiles, permissions, browser include
@@ -64,15 +65,6 @@ tox -e py312-lint               # isort + flake8
 tox -e isort-apply              # Fix import order
 ```
 
-### Frontend assets
-
-```bash
-cd src/imio/omnia/core/browser/resources
-npm install
-npm run dev                     # Vite dev server
-npm run build                   # Production build
-```
-
 ## Code style
 
 - Formatter: **Black** (line length 120)
@@ -96,14 +88,24 @@ Stored under `imio.omnia.core.browser.controlpanel.IOmniaCoreSettings`:
 - `openai_api_url` — OpenAI API URL
 - `application_id` — Application ID
 - `organization_id` — Organization ID
+- `core_auth_type` — Omnia Core API authentication (none/oauth2)
+- `openai_auth_type` — OpenAI gateway authentication (none/api_key/oauth2)
+- `oauth_grant_type` — OAuth 2.0 grant type (password / client_credentials)
+- `oauth_client_id` — OAuth 2.0 client ID
+- `oauth_client_secret` — OAuth 2.0 client secret
+- `oauth_token_url` — OAuth 2.0 token endpoint URL
+- `oauth_scope` — OAuth 2.0 scope
+- `oauth_client_auth_method` — OAuth 2.0 client authentication method (client_secret_basic / client_secret_post)
+- `oauth_username` — OAuth 2.0 username (service account, ROPC grant)
+- `oauth_password` — OAuth 2.0 password (service account, ROPC grant)
 
 ## Services
 
 Two HTTP client adapters wrapping the iMio Omnia APIs. Both are multi-adapters on `(context, request)`.
 
-**OmniaCoreAPIService** (`IOmniaCoreAPIService`): wraps `/imio/omnia/core/v1/agents/` — text expansion, improvement, reduction, correction, translation, accessibility, title suggestion, meeting notes conversion, content categorization, metadata extraction. API spec: https://ipa.imio.be/imio/omnia/core/openapi.json
+**OmniaCoreAPIService** (`IOmniaCoreAPIService`): wraps `/imio/omnia/core/v1/agents/` — text expansion, improvement, reduction, correction, translation, accessibility, title suggestion, meeting notes conversion, content categorization, metadata extraction. API spec: `/imio/omnia/core/openapi.json` on the iMio API gateway.
 
-**OmniaOpenAIService** (`IOmniaOpenAIService`): wraps `/imio/omnia/openai/v1/` — OpenAI-compatible gateway with `list_models()` and `chat_completions()` (supports streaming). API spec: https://ipa.imio.be/imio/omnia/openai/openapi.json
+**OmniaOpenAIService** (`IOmniaOpenAIService`): OpenAI-compatible LLM gateway with `list_models()` and `chat_completions()` (supports streaming). The base URL comes from the `openai_api_url` registry setting.
 
 Usage:
 ```python
@@ -116,6 +118,8 @@ result = service.improve_text("Le projet va bien.")
 
 Both services send `x-imio-application` (from registry) and `x-imio-municipality` (from `IOrganizationIDProvider` adapter) headers on every request.
 
+Each service authenticates independently via its own registry field (`core_auth_type` for the Omnia Core API, `openai_auth_type` for the OpenAI gateway). When a service's scheme is `oauth2`, it authenticates with a Keycloak SSO-Apps Bearer token obtained by a process-level shared client (`oauth.py`, an authlib-on-httpx2 port, with eager token refresh under a lock); credentials are shared across services (one Keycloak client per application). The OpenAI service additionally enforces a leak guard: `openai_auth_type=oauth2` against a non-iMio-hosted `openai_api_url` raises `ValueError` rather than silently sending the SSO-Apps JWT to a third party. `openai_auth_type=api_key` sends the static `openai_api_key` instead; `none` sends no authentication for either service.
+
 ## Environment variables
 
 Set via buildout `environment-vars` or shell. Synced to registry on startup via `IDatabaseOpenedWithRoot` subscriber (requires `SITE_ID`).
@@ -125,8 +129,20 @@ Set via buildout `environment-vars` or shell. Synced to registry on startup via 
 | `SITE_ID` | Target Plone site ID in ZODB |
 | `OMNIA_CORE_API_URL` | `core_api_url` |
 | `OMNIA_OPENAI_API_URL` | `openai_api_url` |
+| `OMNIA_OPENAI_API_KEY` | `openai_api_key` |
 | `OMNIA_APPLICATION_ID` | `application_id` |
 | `OMNIA_ORGANIZATION_ID` | `organization_id` |
+| `SSO_APPS_CLIENT_ID` | `oauth_client_id` |
+| `SSO_APPS_CLIENT_SECRET` | `oauth_client_secret` |
+| `SSO_APPS_URL` | `oauth_token_url` |
+| `SSO_APPS_USER_USERNAME` | `oauth_username` |
+| `SSO_APPS_USER_PASSWORD` | `oauth_password` |
+
+The vocabulary-backed fields (`core_auth_type`, `openai_auth_type`,
+`oauth_grant_type`, `oauth_client_auth_method`) are deliberately *not* in
+`ENV_MAPPING`: they keep their schema defaults (`oauth2`, `password`,
+`client_secret_basic`) and are changed in the control panel, so a deployment
+typo cannot persist a value the `schema.Choice` field would reject.
 
 ## Architecture notes
 

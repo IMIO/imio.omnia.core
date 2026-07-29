@@ -14,7 +14,7 @@ long_description = '\n\n'.join([
 
 setup(
     name='imio.omnia.core',
-    version='1.0a3.dev0',
+    version='1.0.dev0',
     description="Shared infrastructure for iMio's Omnia AI suite for Plone",
     long_description=long_description,
     # Get more from https://pypi.org/classifiers/
@@ -52,7 +52,8 @@ setup(
         'plone.api>=1.8.4',
         'plone.app.dexterity',
         'collective.z3cform.datagridfield',
-        'httpx>=0.28.1',
+        'httpx2',
+        'authlib>=1.7.2,<1.8',
     ],
     extras_require={
         'fingerpointing': [

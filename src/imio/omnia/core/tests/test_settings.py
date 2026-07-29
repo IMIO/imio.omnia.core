@@ -11,23 +11,29 @@ from plone.app.testing import TEST_USER_ID
 
 from imio.omnia.core.settings import get_application_id
 from imio.omnia.core.settings import get_core_api_url
+from imio.omnia.core.settings import get_core_auth_type
 from imio.omnia.core.settings import get_enable_openai_proxy
 from imio.omnia.core.settings import get_enable_proxy
 from imio.omnia.core.settings import get_openai_api_key
 from imio.omnia.core.settings import get_openai_api_url
+from imio.omnia.core.settings import get_openai_auth_type
 from imio.omnia.core.settings import get_openai_extra_headers
 from imio.omnia.core.settings import get_organization_id
 from imio.omnia.core.settings import get_setting
 from imio.omnia.core.settings import set_application_id
 from imio.omnia.core.settings import set_core_api_url
+from imio.omnia.core.settings import set_core_auth_type
 from imio.omnia.core.settings import set_enable_openai_proxy
 from imio.omnia.core.settings import set_enable_proxy
 from imio.omnia.core.settings import set_openai_api_key
 from imio.omnia.core.settings import set_openai_api_url
+from imio.omnia.core.settings import set_openai_auth_type
 from imio.omnia.core.settings import set_organization_id
 from imio.omnia.core.settings import set_setting
 from imio.omnia.core.settings import sync_env_to_registry
+from imio.omnia.core.settings import AUDIT_REGISTRY_RECORD
 from imio.omnia.core.testing import IMIO_OMNIA_CORE_INTEGRATION_TESTING
+from zope.globalrequest import getRequest
 
 
 class DummyConnection:
@@ -61,6 +67,18 @@ class DummySite:
         return self._portal_registry
 
 
+class RecordingRegistry(dict):
+    """Registry remembering the order of writes and whether a request was bound."""
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.writes = []
+
+    def __setitem__(self, key, value):
+        self.writes.append((key, value, getRequest() is not None))
+        super().__setitem__(key, value)
+
+
 class TestSettingsAccessors(unittest.TestCase):
     layer = IMIO_OMNIA_CORE_INTEGRATION_TESTING
 
@@ -75,6 +93,17 @@ class TestSettingsAccessors(unittest.TestCase):
         set_enable_proxy(False)
         set_enable_openai_proxy(False)
         set_setting("openai_extra_headers", {})
+        set_setting("oauth_grant_type", "password")
+        set_setting("oauth_client_auth_method", "client_secret_basic")
+        for field in (
+            "oauth_client_id",
+            "oauth_client_secret",
+            "oauth_token_url",
+            "oauth_scope",
+            "oauth_username",
+            "oauth_password",
+        ):
+            set_setting(field, "")
 
     @patch("imio.omnia.core.settings.api.portal.get_registry_record")
     def test_get_setting_uses_prefixed_registry_key(self, mock_get_record):
@@ -115,6 +144,42 @@ class TestSettingsAccessors(unittest.TestCase):
 
         set_setting("openai_extra_headers", {"X-Test": "extra"})
         self.assertEqual(get_openai_extra_headers(), {"X-Test": "extra"})
+
+    def test_core_auth_type_defaults_to_oauth2(self):
+        self.assertEqual(get_core_auth_type(), "oauth2")
+
+    def test_openai_auth_type_defaults_to_oauth2(self):
+        self.assertEqual(get_openai_auth_type(), "oauth2")
+
+    def test_core_auth_type_round_trip(self):
+        set_core_auth_type("oauth2")
+        self.assertEqual(get_core_auth_type(), "oauth2")
+        set_core_auth_type("none")
+        self.assertEqual(get_core_auth_type(), "none")
+
+    def test_openai_auth_type_round_trip(self):
+        set_openai_auth_type("oauth2")
+        self.assertEqual(get_openai_auth_type(), "oauth2")
+        set_openai_auth_type("none")
+        self.assertEqual(get_openai_auth_type(), "none")
+        set_openai_auth_type("api_key")
+        self.assertEqual(get_openai_auth_type(), "api_key")
+
+    def test_oauth_settings_round_trip(self):
+        cases = [
+            ("oauth_grant_type", "client_credentials"),
+            ("oauth_client_id", "imio-apps-deliberationsbe"),
+            ("oauth_client_secret", "s3cr3t"),
+            ("oauth_token_url", "https://kc.example/realms/sso-apps/protocol/openid-connect/token"),
+            ("oauth_scope", "profile"),
+            ("oauth_client_auth_method", "client_secret_post"),
+            ("oauth_username", "svc-account"),
+            ("oauth_password", "pw"),
+        ]
+        for field, value in cases:
+            with self.subTest(field=field):
+                set_setting(field, value)
+                self.assertEqual(get_setting(field), value)
 
 
 class TestSyncEnvToRegistry(unittest.TestCase):
@@ -249,6 +314,105 @@ class TestSyncEnvToRegistry(unittest.TestCase):
         self.assertEqual(mock_set_site.call_args_list[-1].args, (None,))
         self.assertTrue(connection.closed)
 
+    @patch("imio.omnia.core.settings.setSite")
+    @patch("imio.omnia.core.settings.transaction.commit")
+    @patch.dict(
+        os.environ,
+        {
+            "SITE_ID": "Plone",
+            "SSO_APPS_CLIENT_ID": "my-client",
+            "SSO_APPS_CLIENT_SECRET": "my-secret",
+            "SSO_APPS_URL": "https://kc.example/token",
+            "SSO_APPS_USER_USERNAME": "svc",
+            "SSO_APPS_USER_PASSWORD": "pw",
+        },
+        clear=True,
+    )
+    def test_sync_env_to_registry_syncs_oauth_credentials(self, mock_commit, mock_set_site):
+        prefix = "imio.omnia.IOmniaCoreSettings"
+        registry = {
+            f"{prefix}.oauth_client_id": "",
+            f"{prefix}.oauth_client_secret": "",
+            f"{prefix}.oauth_token_url": "",
+            f"{prefix}.oauth_username": "",
+            f"{prefix}.oauth_password": "",
+        }
+        site = DummySite(registry)
+        event, connection, _database = self._event_for({"Application": {"Plone": site}})
+
+        sync_env_to_registry(event)
+
+        self.assertEqual(registry[f"{prefix}.oauth_client_id"], "my-client")
+        self.assertEqual(registry[f"{prefix}.oauth_client_secret"], "my-secret")
+        self.assertEqual(registry[f"{prefix}.oauth_token_url"], "https://kc.example/token")
+        self.assertEqual(registry[f"{prefix}.oauth_username"], "svc")
+        self.assertEqual(registry[f"{prefix}.oauth_password"], "pw")
+        mock_commit.assert_called_once()
+        self.assertTrue(connection.closed)
+
+    @patch("imio.omnia.core.settings.setSite")
+    @patch("imio.omnia.core.settings.transaction.commit")
+    @patch.dict(
+        os.environ,
+        {"SITE_ID": "Plone", "SSO_APPS_CLIENT_SECRET": "s3cret"},
+        clear=True,
+    )
+    def test_sync_env_to_registry_silences_audit_logging(self, mock_commit, mock_set_site):
+        """Credentials must not reach the fingerpointing audit log."""
+        key = "imio.omnia.IOmniaCoreSettings.oauth_client_secret"
+        registry = RecordingRegistry({AUDIT_REGISTRY_RECORD: True, key: ""})
+        site = DummySite(registry)
+        event, _connection, _database = self._event_for({"Application": {"Plone": site}})
+
+        sync_env_to_registry(event)
+
+        self.assertEqual(
+            registry.writes,
+            [
+                (AUDIT_REGISTRY_RECORD, False, True),
+                (key, "s3cret", True),
+                (AUDIT_REGISTRY_RECORD, True, True),
+            ],
+        )
+        self.assertIsNone(getRequest())
+
+    @patch("imio.omnia.core.settings.setSite")
+    @patch("imio.omnia.core.settings.transaction.commit")
+    @patch.dict(
+        os.environ,
+        {
+            "SITE_ID": "Plone",
+            "OMNIA_CORE_AUTH_TYPE": "bogus",
+            "OMNIA_OPENAI_AUTH_TYPE": "bogus",
+            "OMNIA_OAUTH_GRANT_TYPE": "bogus",
+            "OMNIA_OAUTH_CLIENT_AUTH_METHOD": "bogus",
+            "OMNIA_OAUTH_SCOPE": "bogus",
+        },
+        clear=True,
+    )
+    def test_sync_env_to_registry_ignores_vocabulary_fields(self, mock_commit, mock_set_site):
+        """Vocabulary-backed fields are not env-configurable, so typos can't be persisted."""
+        prefix = "imio.omnia.IOmniaCoreSettings"
+        registry = {
+            f"{prefix}.core_auth_type": "oauth2",
+            f"{prefix}.openai_auth_type": "oauth2",
+            f"{prefix}.oauth_grant_type": "password",
+            f"{prefix}.oauth_client_auth_method": "client_secret_basic",
+            f"{prefix}.oauth_scope": "",
+        }
+        site = DummySite(registry)
+        event, connection, _database = self._event_for({"Application": {"Plone": site}})
+
+        sync_env_to_registry(event)
+
+        self.assertEqual(registry[f"{prefix}.core_auth_type"], "oauth2")
+        self.assertEqual(registry[f"{prefix}.openai_auth_type"], "oauth2")
+        self.assertEqual(registry[f"{prefix}.oauth_grant_type"], "password")
+        self.assertEqual(registry[f"{prefix}.oauth_client_auth_method"], "client_secret_basic")
+        self.assertEqual(registry[f"{prefix}.oauth_scope"], "")
+        mock_commit.assert_not_called()
+        self.assertTrue(connection.closed)
+
     @patch("imio.omnia.core.settings.logger.exception")
     @patch("imio.omnia.core.settings.transaction.abort")
     @patch("imio.omnia.core.settings.setSite")
@@ -271,9 +435,7 @@ class TestSyncEnvToRegistry(unittest.TestCase):
             new_callable=PropertyMock,
             side_effect=RuntimeError("broken registry"),
         ):
-            event, connection, _database = self._event_for(
-                {"Application": {"Plone": site}}
-            )
+            event, connection, _database = self._event_for({"Application": {"Plone": site}})
 
             sync_env_to_registry(event)
 

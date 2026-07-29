@@ -31,7 +31,7 @@ class IOrganizationIDProvider(Interface):
 class IOmniaCoreAPIService(Interface):
     """Client for the iMio Omnia Core AI agents API.
 
-    See: https://ipa.imio.be/imio/omnia/core/docs
+    See the ``/imio/omnia/core/docs`` OpenAPI page on the iMio API gateway.
     """
 
     def send(method, path, **kwargs):
@@ -74,7 +74,7 @@ class IOmniaCoreAPIService(Interface):
 class IOmniaOpenAIService(Interface):
     """Client for the iMio Omnia OpenAI-compatible gateway.
 
-    See: https://ipa.imio.be/imio/omnia/openai/docs
+    The gateway base URL is configured by the ``openai_api_url`` registry setting.
     """
 
     def list_models():

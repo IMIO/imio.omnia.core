@@ -48,21 +48,51 @@ Registry settings
 
 Stored under the prefix ``imio.omnia.IOmniaCoreSettings``:
 
-======================  ====================================================================
-Field                   Purpose
-======================  ====================================================================
-core_api_url            Omnia Core API base URL
-openai_api_url          Omnia OpenAI-compatible gateway base URL
-openai_api_key          Optional Bearer token sent to the OpenAI-compatible API
-openai_extra_headers    Additional HTTP headers for the OpenAI-compatible API (dict)
-application_id          Application identifier (sent as ``x-imio-application`` header)
-organization_id         Default organization / municipality ID (``x-imio-municipality``)
-enable_proxy            Enable ``@@omnia-api`` proxy endpoint (default: ``False``)
-enable_openai_proxy     Enable ``@@omnia-openai-api`` streaming proxy (default: ``False``)
-======================  ====================================================================
+========================  ====================================================================
+Field                     Purpose
+========================  ====================================================================
+core_api_url              Omnia Core API base URL
+openai_api_url            Omnia OpenAI-compatible gateway base URL
+openai_extra_headers      Additional HTTP headers for the OpenAI-compatible API (dict)
+application_id            Application identifier (sent as ``x-imio-application`` header)
+organization_id           Default organization / municipality ID (``x-imio-municipality``)
+enable_proxy              Enable ``@@omnia-api`` proxy endpoint (default: ``False``)
+enable_openai_proxy       Enable ``@@omnia-openai-api`` streaming proxy (default: ``False``)
+api_timeout               Timeout for outbound HTTP requests, in seconds (default: ``30``)
+core_auth_type            Core API authentication: ``none`` / ``oauth2`` (default)
+openai_auth_type          Gateway authentication: ``none`` / ``api_key`` / ``oauth2`` (default)
+openai_api_key            Bearer token used when ``openai_auth_type`` is ``api_key``
+oauth_grant_type          ``password`` (ROPC, default) or ``client_credentials``
+oauth_client_id           Keycloak client ID
+oauth_client_secret       Keycloak client secret
+oauth_token_url           Token endpoint of the SSO-Apps realm
+oauth_scope               Optional scope, usually empty
+oauth_client_auth_method  ``client_secret_basic`` (default) or ``client_secret_post``
+oauth_username            Service-account username (``password`` grant only)
+oauth_password            Service-account password (``password`` grant only)
+========================  ====================================================================
 
 These settings are editable via the Omnia control panel at
 ``@@omnia-ai-settings`` (Site Setup > Omnia).
+
+Authentication
+--------------
+
+Each service picks its own scheme, so the two APIs can move independently:
+
+* ``core_auth_type`` — ``oauth2`` (default) or ``none``.
+* ``openai_auth_type`` — ``oauth2`` (default), ``api_key`` (sends the static
+  ``openai_api_key`` as a Bearer token), or ``none``.
+
+With ``oauth2``, outbound requests carry a Bearer token obtained from the
+Keycloak SSO-Apps realm. The token is fetched and refreshed by a process-level
+shared client, so it is acquired once per instance rather than per request.
+Both grant types are supported: ``password`` (ROPC, using
+``oauth_username`` / ``oauth_password``) and ``client_credentials``.
+
+As a safeguard, setting ``openai_auth_type`` to ``oauth2`` while
+``openai_api_url`` points outside ``imio.be`` raises ``ValueError`` instead of
+sending an iMio SSO-Apps token to a third-party provider.
 
 Environment variables
 ---------------------
@@ -71,19 +101,33 @@ Settings can also be driven by environment variables. They are synced to the
 Plone registry on Zope startup (requires ``SITE_ID`` to locate the Plone
 site):
 
-=========================  ================
-Variable                   Registry field
-=========================  ================
-``SITE_ID``                Plone site ID in the ZODB (not stored in registry)
-``OMNIA_CORE_API_URL``     ``core_api_url``
-``OMNIA_OPENAI_API_URL``   ``openai_api_url``
-``OMNIA_OPENAI_API_KEY``   ``openai_api_key``
-``OMNIA_APPLICATION_ID``   ``application_id``
-``OMNIA_ORGANIZATION_ID``  ``organization_id``
-=========================  ================
+===========================  ==================================================
+Variable                     Registry field
+===========================  ==================================================
+``SITE_ID``                  Plone site ID in the ZODB (not stored in registry)
+``OMNIA_CORE_API_URL``       ``core_api_url``
+``OMNIA_OPENAI_API_URL``     ``openai_api_url``
+``OMNIA_OPENAI_API_KEY``     ``openai_api_key``
+``OMNIA_APPLICATION_ID``     ``application_id``
+``OMNIA_ORGANIZATION_ID``    ``organization_id``
+``SSO_APPS_CLIENT_ID``       ``oauth_client_id``
+``SSO_APPS_CLIENT_SECRET``   ``oauth_client_secret``
+``SSO_APPS_URL``             ``oauth_token_url``
+``SSO_APPS_USER_USERNAME``   ``oauth_username``
+``SSO_APPS_USER_PASSWORD``   ``oauth_password``
+===========================  ==================================================
 
 Set them in ``buildout.cfg`` under ``[instance] environment-vars`` or export
 them in your shell before starting Plone.
+
+The ``SSO_APPS_*`` names are shared across iMio applications, so one set of
+variables configures every Omnia-enabled instance of a deployment.
+
+Only free-text settings are configurable this way. The fields backed by a
+vocabulary — ``core_auth_type``, ``openai_auth_type``, ``oauth_grant_type``,
+``oauth_client_auth_method`` — keep their defaults (``oauth2``, ``password``,
+``client_secret_basic``) and are changed in the control panel, so a typo in a
+deployment environment can never persist a value the form would reject.
 
 
 Extending imio.omnia.core

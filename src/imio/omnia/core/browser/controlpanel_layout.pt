@@ -45,6 +45,11 @@
     </div>
   </div>
 
+  <script defer
+          tal:define="portal_state context/@@plone_portal_state"
+          tal:attributes="src string:${portal_state/portal_url}/++plone++imio.omnia.core/omnia-controlpanel.js">
+  </script>
+
 </tal:main>
 </body>
 </html>

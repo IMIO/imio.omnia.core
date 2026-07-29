@@ -2,10 +2,20 @@ Changelog
 =========
 
 
-1.0a3 (unreleased)
-------------------
+1.0 (unreleased)
+----------------
 
 - DELIBE-289: Add configurable API timeout.
+  [duchenean]
+- OIA-241: Authenticate outbound Omnia API calls with Keycloak SSO-Apps
+  OAuth 2.0 (ROPC / client credentials via authlib), configurable in the
+  control panel, with credentials supplied by the cross-application
+  ``SSO_APPS_*`` environment variables. OAuth 2.0 is the default scheme for
+  both the Omnia Core API and the OpenAI gateway.
+  [duchenean]
+- DELIBE-322: Replace ``httpx`` with ``httpx2`` (maintained pydantic fork).
+  [duchenean]
+- Removed the unused Vite/React scaffold from ``browser/resources``.
   [duchenean]
 
 

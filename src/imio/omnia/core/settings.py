@@ -1,11 +1,23 @@
 import logging
 import os
+from contextlib import contextmanager
+from io import BytesIO
 
 import transaction
 from plone import api
 from zope.component.hooks import setSite
+from zope.globalrequest import setRequest
+from ZPublisher.HTTPRequest import HTTPRequest
+from ZPublisher.HTTPResponse import HTTPResponse
 
 from imio.omnia.core import REGISTRY_PREFIX
+
+try:
+    from collective.fingerpointing.interfaces import IFingerPointingSettings
+
+    AUDIT_REGISTRY_RECORD = f"{IFingerPointingSettings.__identifier__}.audit_registry"
+except ImportError:  # collective.fingerpointing is optional
+    AUDIT_REGISTRY_RECORD = None
 
 logger = logging.getLogger(__name__)
 
@@ -117,6 +129,39 @@ def set_openai_auth_type(value):
     set_setting("openai_auth_type", value)
 
 
+@contextmanager
+def _startup_request():
+    """Bind a minimal request to the current thread.
+
+    There is no request while the database is being opened, but subscribers to
+    registry changes assume there is one.
+    """
+    environ = {"SERVER_NAME": "localhost", "SERVER_PORT": "80", "REQUEST_METHOD": "GET"}
+    request = HTTPRequest(BytesIO(b""), environ, HTTPResponse(stdout=BytesIO()))
+    setRequest(request)
+    try:
+        yield
+    finally:
+        setRequest(None)
+
+
+@contextmanager
+def _audit_logging_disabled(registry):
+    """Turn collective.fingerpointing off, when it is installed.
+
+    It logs the new value of every record it sees change, and some of the
+    records written here hold credentials.
+    """
+    enabled = AUDIT_REGISTRY_RECORD is not None and registry.get(AUDIT_REGISTRY_RECORD)
+    if enabled:
+        registry[AUDIT_REGISTRY_RECORD] = False
+    try:
+        yield
+    finally:
+        if enabled:
+            registry[AUDIT_REGISTRY_RECORD] = True
+
+
 def sync_env_to_registry(event):
     """On database open, write environment variable values into the Plone registry."""
     site_id = os.environ.get("SITE_ID")
@@ -143,12 +188,13 @@ def sync_env_to_registry(event):
         setSite(site)
         registry = site.portal_registry
         changed = False
-        for name, value in env_values.items():
-            key = f"{REGISTRY_PREFIX}.{name}"
-            if key in registry and registry[key] != value:
-                registry[key] = value
-                logger.info("Set %s from env var %s", key, ENV_MAPPING[name])
-                changed = True
+        with _startup_request(), _audit_logging_disabled(registry):
+            for name, value in env_values.items():
+                key = f"{REGISTRY_PREFIX}.{name}"
+                if key in registry and registry[key] != value:
+                    registry[key] = value
+                    logger.info("Set %s from env var %s", key, ENV_MAPPING[name])
+                    changed = True
 
         if changed:
             transaction.commit()

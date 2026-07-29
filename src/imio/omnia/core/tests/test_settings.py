@@ -31,7 +31,9 @@ from imio.omnia.core.settings import set_openai_auth_type
 from imio.omnia.core.settings import set_organization_id
 from imio.omnia.core.settings import set_setting
 from imio.omnia.core.settings import sync_env_to_registry
+from imio.omnia.core.settings import AUDIT_REGISTRY_RECORD
 from imio.omnia.core.testing import IMIO_OMNIA_CORE_INTEGRATION_TESTING
+from zope.globalrequest import getRequest
 
 
 class DummyConnection:
@@ -63,6 +65,18 @@ class DummySite:
     @property
     def portal_registry(self):
         return self._portal_registry
+
+
+class RecordingRegistry(dict):
+    """Registry remembering the order of writes and whether a request was bound."""
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.writes = []
+
+    def __setitem__(self, key, value):
+        self.writes.append((key, value, getRequest() is not None))
+        super().__setitem__(key, value)
 
 
 class TestSettingsAccessors(unittest.TestCase):
@@ -335,6 +349,32 @@ class TestSyncEnvToRegistry(unittest.TestCase):
         self.assertEqual(registry[f"{prefix}.oauth_password"], "pw")
         mock_commit.assert_called_once()
         self.assertTrue(connection.closed)
+
+    @patch("imio.omnia.core.settings.setSite")
+    @patch("imio.omnia.core.settings.transaction.commit")
+    @patch.dict(
+        os.environ,
+        {"SITE_ID": "Plone", "SSO_APPS_CLIENT_SECRET": "s3cret"},
+        clear=True,
+    )
+    def test_sync_env_to_registry_silences_audit_logging(self, mock_commit, mock_set_site):
+        """Credentials must not reach the fingerpointing audit log."""
+        key = "imio.omnia.IOmniaCoreSettings.oauth_client_secret"
+        registry = RecordingRegistry({AUDIT_REGISTRY_RECORD: True, key: ""})
+        site = DummySite(registry)
+        event, _connection, _database = self._event_for({"Application": {"Plone": site}})
+
+        sync_env_to_registry(event)
+
+        self.assertEqual(
+            registry.writes,
+            [
+                (AUDIT_REGISTRY_RECORD, False, True),
+                (key, "s3cret", True),
+                (AUDIT_REGISTRY_RECORD, True, True),
+            ],
+        )
+        self.assertIsNone(getRequest())
 
     @patch("imio.omnia.core.settings.setSite")
     @patch("imio.omnia.core.settings.transaction.commit")

@@ -103,7 +103,7 @@ def get_api_timeout():
 
 
 def get_core_auth_type():
-    return get_setting("core_auth_type", default="none")
+    return get_setting("core_auth_type", default="oauth2")
 
 
 def set_core_auth_type(value):
@@ -111,7 +111,7 @@ def set_core_auth_type(value):
 
 
 def get_openai_auth_type():
-    return get_setting("openai_auth_type", default="api_key")
+    return get_setting("openai_auth_type", default="oauth2")
 
 
 def set_openai_auth_type(value):

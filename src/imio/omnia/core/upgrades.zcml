@@ -4,11 +4,20 @@
   i18n_domain="imio.omnia.core">
 
   <genericsetup:upgradeStep
-    title="OIA-241: register OAuth2 registry records"
+    title="Register the OAuth 2.0 registry records"
     description="Re-imports the registry step so the new core_auth_type / openai_auth_type / oauth_* records exist."
     source="1000"
     destination="1001"
     handler=".upgrades.upgrade_1000_to_1001"
+    profile="imio.omnia.core:default"
+  />
+
+  <genericsetup:upgradeStep
+    title="Default both services to OAuth 2.0"
+    description="Migrates core_auth_type / openai_auth_type registry records already set to the old defaults over to oauth2."
+    source="1001"
+    destination="1002"
+    handler=".upgrades.upgrade_1001_to_1002"
     profile="imio.omnia.core:default"
   />
 

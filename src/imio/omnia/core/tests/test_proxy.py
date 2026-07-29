@@ -17,6 +17,7 @@ from imio.omnia.core.browser.proxy import OmniaProxyView
 from imio.omnia.core.browser.proxy import SSEStreamIterator
 from imio.omnia.core.interfaces import IImioOmniaCoreLayer
 from imio.omnia.core.settings import get_enable_proxy, set_enable_proxy
+from imio.omnia.core.settings import set_core_auth_type
 from imio.omnia.core.settings import set_openai_auth_type
 from imio.omnia.core.settings import set_enable_openai_proxy
 from imio.omnia.core.settings import set_openai_api_url
@@ -48,6 +49,10 @@ class TestOmniaProxyView(unittest.TestCase):
         alsoProvides(self.request, IImioOmniaCoreLayer)
         setRoles(self.portal, TEST_USER_ID, ["Manager"])
         set_enable_proxy(False)
+        # These tests mock httpx2.request directly (plain transport); the
+        # default core_auth_type is now oauth2, so pin it back to
+        # "none" here to keep exercising that path.
+        set_core_auth_type("none")
 
     def _get_view(self, body=b"", path_segments=None):
         """Instantiate OmniaProxyView directly, bypassing ZPublisher."""

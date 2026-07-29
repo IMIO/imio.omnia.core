@@ -10,7 +10,8 @@ Changelog
 - OIA-241: Authenticate outbound Omnia API calls with Keycloak SSO-Apps
   OAuth 2.0 (ROPC / client credentials via authlib), configurable in the
   control panel and via ``OMNIA_CORE_AUTH_TYPE`` / ``OMNIA_OPENAI_AUTH_TYPE`` /
-  ``SSO_APPS_*`` / ``OMNIA_OAUTH_*`` environment variables.
+  ``SSO_APPS_*`` / ``OMNIA_OAUTH_*`` environment variables. OAuth 2.0 is the
+  default scheme for both the Omnia Core API and the OpenAI gateway.
   [duchenean]
 - DELIBE-322: Replace ``httpx`` with ``httpx2`` (maintained pydantic fork).
   [duchenean]

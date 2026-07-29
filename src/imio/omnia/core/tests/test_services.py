@@ -32,6 +32,12 @@ class TestServiceHeadersAndTransport(unittest.TestCase):
         set_setting("core_api_url", "")
         set_setting("openai_api_url", "")
         set_setting("openai_extra_headers", {})
+        # These tests exercise the plain (non-OAuth2) transport; OAuth2 flows
+        # have their own coverage in TestServicesOAuthMode below. The
+        # default auth type is now oauth2 for both services, so
+        # pin the legacy schemes explicitly here.
+        set_core_auth_type("none")
+        set_openai_auth_type("api_key")
 
     def test_core_headers_include_application_and_organization(self):
         set_application_id("omnia-app")
@@ -190,6 +196,9 @@ class TestOpenAIServiceMethods(unittest.TestCase):
     def setUp(self):
         self.portal = self.layer["portal"]
         self.request = self.layer["request"]
+        # Default auth type is now oauth2; these tests exercise
+        # the plain transport (mocked httpx2), so pin the legacy scheme.
+        set_openai_auth_type("api_key")
 
     def test_chat_completions_non_streaming_omits_optional_fields(self):
         service = OmniaOpenAIService(self.portal, self.request)

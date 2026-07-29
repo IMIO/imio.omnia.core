@@ -47,8 +47,10 @@ msgid "OpenAI API Key"
 msgstr "Clé API OpenAI"
 
 #: ../browser/controlpanel.py:27
-msgid "Optional Bearer token sent to the OpenAI-compatible API."
-msgstr "Token Bearer optionnel envoyé à l'API compatible OpenAI."
+msgid "Sent as a Bearer token when the OpenAI gateway authentication is \"Static API key\"."
+msgstr ""
+"Envoyé comme jeton Bearer lorsque l'authentification de la passerelle OpenAI "
+"est « Clé d'API statique »."
 
 #: ../browser/controlpanel.py:32
 msgid "OpenAI extra headers"

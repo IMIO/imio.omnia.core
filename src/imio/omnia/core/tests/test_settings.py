@@ -79,8 +79,6 @@ class TestSettingsAccessors(unittest.TestCase):
         set_enable_proxy(False)
         set_enable_openai_proxy(False)
         set_setting("openai_extra_headers", {})
-        set_setting("core_auth_type", "none")
-        set_setting("openai_auth_type", "api_key")
         set_setting("oauth_grant_type", "password")
         set_setting("oauth_client_auth_method", "client_secret_basic")
         for field in (
@@ -133,11 +131,11 @@ class TestSettingsAccessors(unittest.TestCase):
         set_setting("openai_extra_headers", {"X-Test": "extra"})
         self.assertEqual(get_openai_extra_headers(), {"X-Test": "extra"})
 
-    def test_core_auth_type_defaults_to_none(self):
-        self.assertEqual(get_core_auth_type(), "none")
+    def test_core_auth_type_defaults_to_oauth2(self):
+        self.assertEqual(get_core_auth_type(), "oauth2")
 
-    def test_openai_auth_type_defaults_to_api_key(self):
-        self.assertEqual(get_openai_auth_type(), "api_key")
+    def test_openai_auth_type_defaults_to_oauth2(self):
+        self.assertEqual(get_openai_auth_type(), "oauth2")
 
     def test_core_auth_type_round_trip(self):
         set_core_auth_type("oauth2")

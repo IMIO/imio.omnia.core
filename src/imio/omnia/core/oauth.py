@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
-"""OAuth 2.0 client machinery for the Omnia APIs (OIA-241).
+"""OAuth 2.0 client machinery for the Omnia APIs.
 
 This module is a port of authlib's synchronous httpx integration
 (authlib/integrations/httpx_client/oauth2_client.py and utils.py,
 authlib 1.7.2) with ``httpx`` replaced by ``httpx2``: authlib has no
-httpx2 support and DELIBE-322 removes httpx from the environment.
+httpx2 support and httpx is no longer part of this environment.
 If a future authlib release supports httpx2, delete the port and
 import ``OAuth2Client`` from authlib instead.
 

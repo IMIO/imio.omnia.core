@@ -1,4 +1,4 @@
-/* OIA-241: show/hide OAuth2 fields on @@omnia-ai-settings.
+/* Show/hide OAuth2 fields on @@omnia-ai-settings.
  * Progressive enhancement — without this script all fields stay visible. */
 (function () {
   "use strict";

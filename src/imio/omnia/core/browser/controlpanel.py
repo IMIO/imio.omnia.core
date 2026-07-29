@@ -53,12 +53,6 @@ class IOmniaCoreSettings(Interface):
         required=False,
     )
 
-    openai_api_key = schema.TextLine(
-        title=_("OpenAI API Key"),
-        description=_("Optional Bearer token sent to the OpenAI-compatible API."),
-        required=False,
-    )
-
     openai_extra_headers = schema.Dict(
         title=_("OpenAI extra headers"),
         description=_("Additional HTTP headers sent to the OpenAI-compatible API."),
@@ -103,7 +97,7 @@ class IOmniaCoreSettings(Interface):
         title=_("Omnia Core API authentication"),
         description=_("How outbound requests to the Omnia Core API authenticate."),
         vocabulary=CORE_AUTH_TYPES,
-        default="none",
+        default="oauth2",
         required=False,
     )
 
@@ -114,7 +108,13 @@ class IOmniaCoreSettings(Interface):
             '"Static API key" sends the OpenAI API Key below.'
         ),
         vocabulary=OPENAI_AUTH_TYPES,
-        default="api_key",
+        default="oauth2",
+        required=False,
+    )
+
+    openai_api_key = schema.TextLine(
+        title=_("OpenAI API Key"),
+        description=_('Sent as a Bearer token when the OpenAI gateway authentication is "Static API key".'),
         required=False,
     )
 

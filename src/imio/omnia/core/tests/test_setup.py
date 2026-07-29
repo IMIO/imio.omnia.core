@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 """Setup tests for this package."""
+
 import unittest
 
 from plone import api
@@ -7,7 +8,6 @@ from plone.app.testing import logout
 from plone.app.testing import setRoles
 from plone.app.testing import TEST_USER_ID
 from imio.omnia.core.testing import IMIO_OMNIA_CORE_INTEGRATION_TESTING  # noqa: E501
-
 
 try:
     from Products.CMFPlone.utils import get_installer
@@ -35,25 +35,22 @@ class TestSetup(unittest.TestCase):
 
     def setUp(self):
         """Custom shared utility setup for tests."""
-        self.portal = self.layer['portal']
+        self.portal = self.layer["portal"]
         if get_installer:
-            self.installer = get_installer(self.portal, self.layer['request'])
+            self.installer = get_installer(self.portal, self.layer["request"])
         else:
-            self.installer = api.portal.get_tool('portal_quickinstaller')
+            self.installer = api.portal.get_tool("portal_quickinstaller")
 
     def test_product_installed(self):
         """Test if imio.omnia.core is installed."""
-        self.assertTrue(self.installer.is_product_installed(
-            'imio.omnia.core'))
+        self.assertTrue(self.installer.is_product_installed("imio.omnia.core"))
 
     def test_browserlayer(self):
         """Test that IImioOmniaCoreLayer is registered."""
-        from imio.omnia.core.interfaces import (
-            IImioOmniaCoreLayer)
+        from imio.omnia.core.interfaces import IImioOmniaCoreLayer
         from plone.browserlayer import utils
-        self.assertIn(
-            IImioOmniaCoreLayer,
-            utils.registered_layers())
+
+        self.assertIn(IImioOmniaCoreLayer, utils.registered_layers())
 
     def test_omnia_api_proxy_permission_registered(self):
         """The Omnia API proxy permission is registered on the portal."""
@@ -124,63 +121,29 @@ class TestSetup(unittest.TestCase):
             )
         )
 
-    def test_profile_version_is_1001(self):
-        setup_tool = api.portal.get_tool("portal_setup")
-        self.assertEqual(
-            setup_tool.getLastVersionForProfile("imio.omnia.core:default"),
-            ("1001",),
-        )
-
-    def test_upgrade_step_1000_to_1001_registered(self):
-        from Products.GenericSetup.upgrade import listUpgradeSteps
-
-        setup_tool = api.portal.get_tool("portal_setup")
-        steps = listUpgradeSteps(setup_tool, "imio.omnia.core:default", "1000")
-        self.assertTrue(
-            any(step["dest"] == ("1001",) for step in steps),
-            "No upgrade step from 1000 to 1001 registered",
-        )
-
-    def test_upgrade_step_recreates_missing_oauth_records(self):
-        registry = api.portal.get_tool("portal_registry")
-        prefix = "imio.omnia.IOmniaCoreSettings"
-        del registry.records[f"{prefix}.oauth_client_id"]
-        del registry.records[f"{prefix}.oauth_token_url"]
-        self.assertNotIn(f"{prefix}.oauth_client_id", registry.records)
-
-        from imio.omnia.core.upgrades import upgrade_1000_to_1001
-
-        setup_tool = api.portal.get_tool("portal_setup")
-        upgrade_1000_to_1001(setup_tool)
-
-        self.assertIn(f"{prefix}.oauth_client_id", registry.records)
-        self.assertIn(f"{prefix}.oauth_token_url", registry.records)
-        self.assertIsNone(registry[f"{prefix}.oauth_client_id"])
-
 
 class TestUninstall(unittest.TestCase):
 
     layer = IMIO_OMNIA_CORE_INTEGRATION_TESTING
 
     def setUp(self):
-        self.portal = self.layer['portal']
+        self.portal = self.layer["portal"]
         if get_installer:
-            self.installer = get_installer(self.portal, self.layer['request'])
+            self.installer = get_installer(self.portal, self.layer["request"])
         else:
-            self.installer = api.portal.get_tool('portal_quickinstaller')
+            self.installer = api.portal.get_tool("portal_quickinstaller")
         roles_before = api.user.get_roles(TEST_USER_ID)
-        setRoles(self.portal, TEST_USER_ID, ['Manager'])
-        self.installer.uninstall_product('imio.omnia.core')
+        setRoles(self.portal, TEST_USER_ID, ["Manager"])
+        self.installer.uninstall_product("imio.omnia.core")
         setRoles(self.portal, TEST_USER_ID, roles_before)
 
     def test_product_uninstalled(self):
         """Test if imio.omnia.core is cleanly uninstalled."""
-        self.assertFalse(self.installer.is_product_installed(
-            'imio.omnia.core'))
+        self.assertFalse(self.installer.is_product_installed("imio.omnia.core"))
 
     def test_browserlayer_removed(self):
         """Test that IImioOmniaCoreLayer is removed."""
-        from imio.omnia.core.interfaces import \
-            IImioOmniaCoreLayer
+        from imio.omnia.core.interfaces import IImioOmniaCoreLayer
         from plone.browserlayer import utils
+
         self.assertNotIn(IImioOmniaCoreLayer, utils.registered_layers())

@@ -29,7 +29,7 @@ class BaseOmniaService:
 
     registry_url_field = None  # override in subclasses
     auth_type_field = "core_auth_type"  # override in subclasses
-    default_auth_type = "none"  # override in subclasses
+    default_auth_type = "oauth2"  # override in subclasses
 
     def __init__(self, context, request):
         self.context = context
@@ -169,7 +169,7 @@ class OmniaCoreAPIService(BaseOmniaService):
 class OmniaOpenAIService(BaseOmniaService):
     registry_url_field = "openai_api_url"
     auth_type_field = "openai_auth_type"
-    default_auth_type = "api_key"
+    default_auth_type = "oauth2"
 
     def _use_oauth(self):
         """Return whether this request should use the shared OAuth2 client.

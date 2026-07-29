@@ -11,12 +11,8 @@ logger = logging.getLogger(__name__)
 
 
 def upgrade_1000_to_1001(context):
-    """create the core_auth_type / openai_auth_type / oauth_* registry records."""
+    """Create the OAuth 2.0 registry records and make oauth2 the default scheme."""
     context.runImportStepFromProfile("profile-imio.omnia.core:default", "plone.app.registry")
-
-
-def upgrade_1001_to_1002(context):
-    """OAuth 2.0 becomes the default scheme for both services."""
     registry = getUtility(IRegistry)
     for field in ("core_auth_type", "openai_auth_type"):
         key = f"{REGISTRY_PREFIX}.{field}"

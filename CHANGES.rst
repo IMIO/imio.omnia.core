@@ -2,8 +2,8 @@ Changelog
 =========
 
 
-1.0a3 (unreleased)
-------------------
+1.0 (unreleased)
+----------------
 
 - DELIBE-289: Add configurable API timeout.
   [duchenean]

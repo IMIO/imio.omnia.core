@@ -98,7 +98,7 @@ class IOmniaCoreSettings(Interface):
         description=_("How outbound requests to the Omnia Core API authenticate."),
         vocabulary=CORE_AUTH_TYPES,
         default="oauth2",
-        required=False,
+        required=True,
     )
 
     openai_auth_type = schema.Choice(
@@ -109,7 +109,7 @@ class IOmniaCoreSettings(Interface):
         ),
         vocabulary=OPENAI_AUTH_TYPES,
         default="oauth2",
-        required=False,
+        required=True,
     )
 
     openai_api_key = schema.TextLine(
@@ -122,7 +122,7 @@ class IOmniaCoreSettings(Interface):
         title=_("OAuth 2.0 grant type"),
         vocabulary=GRANT_TYPES,
         default="password",
-        required=False,
+        required=True,
     )
 
     oauth_client_id = schema.TextLine(
@@ -151,7 +151,7 @@ class IOmniaCoreSettings(Interface):
         title=_("OAuth 2.0 client authentication method"),
         vocabulary=CLIENT_AUTH_METHODS,
         default="client_secret_basic",
-        required=False,
+        required=True,
     )
 
     oauth_username = schema.TextLine(

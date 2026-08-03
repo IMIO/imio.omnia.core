@@ -2,7 +2,7 @@ Changelog
 =========
 
 
-1.0 (unreleased)
+1.0 (2026-08-03)
 ----------------
 
 - DELIBE-289: Add configurable API timeout.

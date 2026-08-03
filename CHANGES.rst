@@ -5,7 +5,12 @@ Changelog
 1.1 (unreleased)
 ----------------
 
-- Nothing changed yet.
+- Fix an instance startup crash loop: when every mapped environment variable
+  already matched the registry, ``sync_env_to_registry`` left the connection
+  joined to a transaction (silencing the fingerpointing audit log writes to
+  the registry unconditionally) and ``ConnectionStateError`` aborted Zope
+  startup.
+  [duchenean]
 
 
 1.0 (2026-08-03)

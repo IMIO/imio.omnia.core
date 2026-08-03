@@ -2,7 +2,7 @@ Changelog
 =========
 
 
-1.1 (unreleased)
+1.1 (2026-08-03)
 ----------------
 
 - Fix an instance startup crash loop: when every mapped environment variable

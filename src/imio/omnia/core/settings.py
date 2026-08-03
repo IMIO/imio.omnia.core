@@ -198,9 +198,19 @@ def sync_env_to_registry(event):
 
         if changed:
             transaction.commit()
+        else:
+            # _audit_logging_disabled writes to the registry even when no value
+            # changed, which joins the connection to a transaction. Closing a
+            # joined connection raises ConnectionStateError, which would escape
+            # this subscriber and abort Zope startup.
+            transaction.abort()
     except Exception:
         transaction.abort()
         logger.exception("Failed to sync environment variables to registry")
     finally:
         setSite(None)
-        conn.close()
+        try:
+            conn.close()
+        except Exception:
+            # Syncing settings is a convenience; it must never prevent startup.
+            logger.exception("Failed to close the registry sync connection")

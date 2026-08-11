@@ -5,7 +5,8 @@ Changelog
 1.2 (unreleased)
 ----------------
 
-- Nothing changed yet.
+- Set `Plone` as the default `SITE_ID` when not defined.
+  [boulch]
 
 
 1.1 (2026-08-03)

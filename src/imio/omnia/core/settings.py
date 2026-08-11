@@ -164,7 +164,7 @@ def _audit_logging_disabled(registry):
 
 def sync_env_to_registry(event):
     """On database open, write environment variable values into the Plone registry."""
-    site_id = os.environ.get("SITE_ID")
+    site_id = os.environ.get("SITE_ID", "Plone")
     if not site_id:
         return
 

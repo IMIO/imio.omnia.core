@@ -153,9 +153,9 @@ class OmniaCoreAPIService(BaseOmniaService):
         if input is not None:
             data["input"] = input
         if image_url is not None:
-            data["image_url"] = image_url
+            data["file_url"] = image_url
         if image_file is not None:
-            files["image_file"] = image_file
+            files["file"] = image_file
         return self.send(
             "POST",
             "/v1/agents/deduce-metadata",

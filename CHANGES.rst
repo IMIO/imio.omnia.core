@@ -5,7 +5,9 @@ Changelog
 1.3 (unreleased)
 ----------------
 
-- Nothing changed yet.
+- Fix deduce_metadata. API uses the file and file_url fields instead of 
+  image_file and image_url.
+  [boulch]
 
 
 1.2 (2026-08-11)

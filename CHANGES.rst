@@ -2,7 +2,7 @@ Changelog
 =========
 
 
-1.3 (unreleased)
+1.3 (2026-10-09)
 ----------------
 
 - Breaking: replace the custom HMAC Bearer token of ``@@omnia-openai-api`` by

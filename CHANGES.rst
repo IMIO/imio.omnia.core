@@ -5,8 +5,9 @@ Changelog
 1.3 (unreleased)
 ----------------
 
-- Breaking: drop the HMAC Bearer token check from ``@@omnia-openai-api`` and
-  remove ``imio.omnia.core.tokens``.
+- Breaking: replace the custom HMAC Bearer token of ``@@omnia-openai-api`` by
+  plone.protect's CSRF token (``X-CSRF-TOKEN`` header) and remove
+  ``imio.omnia.core.tokens``.
   [chris-adam]
 
 

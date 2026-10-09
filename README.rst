@@ -424,9 +424,25 @@ API credentials or the upstream URL to the client.
   permission (granted to ``Authenticated`` by default).
 - Cross-origin requests are rejected: when an ``Origin`` header is present,
   its host must match the portal's.
+- Requests must carry plone.protect's CSRF token in an ``X-CSRF-TOKEN``
+  header (or an ``_authenticator`` parameter); otherwise the proxy answers
+  ``403``.
 
 No ``Authorization`` header is needed: a same-origin ``fetch()`` sends the
 visitor's session cookie, and Zope checks the permission.
+
+**Token generation (server-side, e.g. in a viewlet):**
+
+.. code:: python
+
+    from plone.protect.authenticator import createToken
+
+    token = createToken()
+    # Pass this token to the browser, e.g. in a JS settings object
+
+For anonymous visitors the token is the same for everyone and stays valid
+until the keyring rotates (on user login, at most daily). It proves the caller
+loaded a page from the site; it does not replace rate limiting.
 
 Projects that need anonymous access to ``@@omnia-openai-api`` can override the
 default role mapping in their own GenericSetup ``rolemap.xml`` by granting the
@@ -445,6 +461,7 @@ maps to the upstream API path (e.g. ``chat/completions``).
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          "X-CSRF-TOKEN": token,
         },
         body: JSON.stringify({
           model: "Mistral Large",

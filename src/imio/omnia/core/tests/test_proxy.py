@@ -5,7 +5,8 @@ import unittest
 from unittest.mock import MagicMock, patch
 
 import httpx2
-from plone.app.testing import TEST_USER_ID, setRoles
+from plone.app.testing import TEST_USER_ID, logout, setRoles
+from plone.protect.authenticator import createToken
 from zope.component import ComponentLookupError, getMultiAdapter
 from zope.interface import alsoProvides
 from zope.publisher.browser import TestRequest
@@ -268,8 +269,10 @@ class TestOpenAIProxyOAuthMode(unittest.TestCase):
         ]:
             set_setting(field, value)
         oauth.reset_oauth_client()
+        self.request.environ["HTTP_X_CSRF_TOKEN"] = createToken()
 
     def tearDown(self):
+        self.request.environ.pop("HTTP_X_CSRF_TOKEN", None)
         oauth.reset_oauth_client()
         set_openai_auth_type("api_key")
         set_enable_openai_proxy(False)
@@ -281,6 +284,29 @@ class TestOpenAIProxyOAuthMode(unittest.TestCase):
         for segment in path_segments or []:
             view.publishTraverse(self.request, segment)
         return view
+
+    def _call_with_fake_client(self):
+        fake_client = MagicMock()
+        fake_client.request.return_value = MagicMock(status_code=200, text='{"ok": true}')
+        with patch("imio.omnia.core.browser.proxy.oauth.get_oauth_client", return_value=fake_client):
+            return self._get_view(
+                body={"model": "m", "messages": [], "stream": False},
+                path_segments=["chat", "completions"],
+            )()
+
+    def test_missing_csrf_token_returns_403(self):
+        del self.request.environ["HTTP_X_CSRF_TOKEN"]
+        result = self._call_with_fake_client()
+        self.assertEqual(self.request.response.getStatus(), 403)
+        self.assertEqual(json.loads(result), {"error": "Invalid CSRF token"})
+
+    def test_anonymous_csrf_token_is_accepted(self):
+        """Anonymous visitors get a token from the _anon keyring."""
+        logout()
+        self.request.environ["HTTP_X_CSRF_TOKEN"] = createToken()
+        result = self._call_with_fake_client()
+        self.assertEqual(self.request.response.getStatus(), 200)
+        self.assertEqual(json.loads(result), {"ok": True})
 
     @patch("imio.omnia.core.browser.proxy.httpx2.request")
     def test_json_response_routes_through_oauth_client(self, mock_httpx_request):

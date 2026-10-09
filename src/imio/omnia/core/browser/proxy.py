@@ -6,8 +6,10 @@ from urllib.parse import urlparse
 import httpx2
 from httpx2 import USE_CLIENT_DEFAULT
 from plone import api
+from plone.protect.authenticator import check as check_csrf
 from plone.protect.interfaces import IDisableCSRFProtection
 from Products.Five import BrowserView
+from zExceptions import Forbidden
 from zope.component import getMultiAdapter
 from ZPublisher.Iterators import IUnboundStreamIterator
 from zope.i18n import translate
@@ -159,7 +161,8 @@ class OmniaOpenAIProxyView(BrowserView):
     Supports SSE streaming responses required by the chat completions
     endpoint. Enabled via the IOmniaCoreSettings.enable_openai_proxy
     registry flag. Access is controlled by a dedicated browser view
-    permission.
+    permission, the Origin check and plone.protect's CSRF token, sent as
+    an ``X-CSRF-TOKEN`` header (or ``_authenticator`` parameter).
     """
 
     def __init__(self, context, request):
@@ -191,10 +194,9 @@ class OmniaOpenAIProxyView(BrowserView):
         return body, None
 
     def __call__(self):
-        # Disable CSRF protection — the frontend calls us via fetch(), not a
-        # form submission with _authenticator. Access is enforced by the view
-        # permission (the same-origin fetch carries the session cookie);
-        # cross-site requests are rejected by the Origin check below.
+        # plone.protect's automatic check only covers authenticated requests
+        # that write to the ZODB; the token is checked explicitly below
+        # instead, for anonymous visitors too.
         alsoProvides(self.request, IDisableCSRFProtection)
 
         # --- Origin check ---
@@ -203,6 +205,11 @@ class OmniaOpenAIProxyView(BrowserView):
             portal_url = api.portal.get().absolute_url()
             if urlparse(origin).netloc != urlparse(portal_url).netloc:
                 return self._json_error(403, "Origin not allowed")
+
+        try:
+            check_csrf(self.request)
+        except Forbidden:
+            return self._json_error(403, "Invalid CSRF token")
 
         if not self._is_proxy_enabled():
             return self._json_error(404, "Not found")

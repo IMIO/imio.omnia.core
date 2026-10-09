@@ -22,7 +22,6 @@ from imio.omnia.core.services import IOmniaCoreAPIService
 from imio.omnia.core.settings import get_enable_openai_proxy
 from imio.omnia.core.settings import get_enable_proxy
 from imio.omnia.core.settings import get_openai_api_url
-from imio.omnia.core.tokens import validate_token
 
 
 logger = logging.getLogger(__name__)
@@ -192,8 +191,10 @@ class OmniaOpenAIProxyView(BrowserView):
         return body, None
 
     def __call__(self):
-        # Disable CSRF protection — the frontend sends Bearer auth via
-        # fetch(), not a form submission with _authenticator.
+        # Disable CSRF protection — the frontend calls us via fetch(), not a
+        # form submission with _authenticator. Access is enforced by the view
+        # permission (the same-origin fetch carries the session cookie);
+        # cross-site requests are rejected by the Origin check below.
         alsoProvides(self.request, IDisableCSRFProtection)
 
         # --- Origin check ---
@@ -202,19 +203,6 @@ class OmniaOpenAIProxyView(BrowserView):
             portal_url = api.portal.get().absolute_url()
             if urlparse(origin).netloc != urlparse(portal_url).netloc:
                 return self._json_error(403, "Origin not allowed")
-
-        # --- HMAC token check ---
-        # Zope's PAS moves the Authorization header to request._auth before
-        # views run, so getHeader('Authorization') returns None. Read _auth
-        # directly (falls back to getHeader for non-Zope contexts).
-        auth_header = getattr(self.request, "_auth", "") or self.request.getHeader("Authorization", "")
-        if not auth_header or not auth_header.startswith("Bearer "):
-            return self._json_error(401, "Missing authorization")
-
-        token = auth_header[len("Bearer "):]
-        portal_url = api.portal.get().absolute_url()
-        if not validate_token(token, portal_url):
-            return self._json_error(403, "Invalid or expired token")
 
         if not self._is_proxy_enabled():
             return self._json_error(404, "Not found")

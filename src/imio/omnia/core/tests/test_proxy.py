@@ -5,7 +5,6 @@ import unittest
 from unittest.mock import MagicMock, patch
 
 import httpx2
-from plone import api
 from plone.app.testing import TEST_USER_ID, setRoles
 from zope.component import ComponentLookupError, getMultiAdapter
 from zope.interface import alsoProvides
@@ -23,7 +22,6 @@ from imio.omnia.core.settings import set_enable_openai_proxy
 from imio.omnia.core.settings import set_openai_api_url
 from imio.omnia.core.settings import set_setting
 from imio.omnia.core.testing import IMIO_OMNIA_CORE_INTEGRATION_TESTING
-from imio.omnia.core.tokens import generate_token
 
 
 class TestOmniaProxyView(unittest.TestCase):
@@ -270,9 +268,6 @@ class TestOpenAIProxyOAuthMode(unittest.TestCase):
         ]:
             set_setting(field, value)
         oauth.reset_oauth_client()
-
-        portal_url = api.portal.get().absolute_url()
-        self.request._auth = "Bearer %s" % generate_token(portal_url)
 
     def tearDown(self):
         oauth.reset_oauth_client()

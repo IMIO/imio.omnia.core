@@ -5,7 +5,9 @@ Changelog
 1.3 (unreleased)
 ----------------
 
-- Nothing changed yet.
+- Breaking: drop the HMAC Bearer token check from ``@@omnia-openai-api`` and
+  remove ``imio.omnia.core.tokens``.
+  [chris-adam]
 
 
 1.2 (2026-08-11)

@@ -325,7 +325,7 @@ class TestOpenAIServiceMethods(unittest.TestCase):
         mock_send.assert_called_once_with(
             "POST",
             "/v1/agents/deduce-metadata",
-            data={"image_url": "https://example.com/image.png"},
+            data={"file_url": "https://example.com/image.png"},
             files=None,
         )
 
@@ -344,7 +344,7 @@ class TestOpenAIServiceMethods(unittest.TestCase):
             "POST",
             "/v1/agents/deduce-metadata",
             data={"input": "hello"},
-            files={"image_file": image_file},
+            files={"file": image_file},
         )
 
 

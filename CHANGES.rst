@@ -5,6 +5,9 @@ Changelog
 1.4 (unreleased)
 ----------------
 
+- Add the missing imio.helpers dependency.
+  [boulch]
+
 - Add ``test_plone62.cfg`` and ``requirements-6.2.txt`` to test on Plone 6.2.
   [boulch]
 

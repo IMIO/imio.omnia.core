@@ -1,12 +1,13 @@
 # -*- coding: utf-8 -*-
 
+from importlib.resources import files
+
 import os
-import pkg_resources
 import subprocess
 
 
 domain = 'imio.omnia.core'
-os.chdir(pkg_resources.resource_filename(domain, ''))
+os.chdir(str(files(domain)))
 os.chdir('../../../')
 target_path = 'src/imio/omnia/core/'
 locale_path = target_path + 'locales/'

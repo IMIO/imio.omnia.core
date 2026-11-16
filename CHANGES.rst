@@ -5,6 +5,11 @@ Changelog
 1.4 (unreleased)
 ----------------
 
+- Use native namespace packages (PEP 420). Remove the ``pkg_resources``
+  namespace declarations. Use ``importlib.resources`` in ``update_locale``.
+  Add the Plone 6.2 classifier.
+  [boulch]
+
 - Add the missing imio.helpers dependency.
   [boulch]
 

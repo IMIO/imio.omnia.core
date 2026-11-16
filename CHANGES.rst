@@ -5,6 +5,9 @@ Changelog
 1.4 (unreleased)
 ----------------
 
+- Add a GitHub Actions workflow that runs the tests on Plone 6.2.
+  [boulch]
+
 - Use native namespace packages (PEP 420). Remove the ``pkg_resources``
   namespace declarations. Use ``importlib.resources`` in ``update_locale``.
   Add the Plone 6.2 classifier.

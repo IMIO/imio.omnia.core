@@ -1,0 +1,19 @@
+name: Tests
+
+on:
+  push:
+  pull_request:
+    branches: [ master ]
+  workflow_dispatch:
+
+jobs:
+  full-test:
+    uses: IMIO/gha-workflows/.github/workflows/package-full-test.yml@v1
+    with:
+      check_path: |
+        imio/omnia/core
+      buildout_config_file: test_plone62.cfg
+      requirements_file: requirements-6.2.txt
+      python_versions: '["3.12", "3.13"]'
+      runner_label: gha-runners
+      test_command: TZ=UTC bin/test

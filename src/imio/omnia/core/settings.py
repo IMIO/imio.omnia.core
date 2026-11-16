@@ -168,7 +168,11 @@ def sync_env_to_registry(event):
     if not site_id:
         return
 
-    env_values = {name: os.environ[env_var] for name, env_var in ENV_MAPPING.items() if os.environ.get(env_var)}
+    env_values = {
+        name: os.environ[env_var]
+        for name, env_var in ENV_MAPPING.items()
+        if os.environ.get(env_var)
+    }
     if not env_values:
         return
 

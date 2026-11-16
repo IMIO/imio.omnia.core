@@ -5,6 +5,9 @@ Changelog
 1.4 (unreleased)
 ----------------
 
+- Format the code with black.
+  [boulch]
+
 - Fix ``test_sync_env_to_registry_ignores_vocabulary_fields``: the database is
   not opened when no env var is synced, so the connection is not closed.
   [boulch]

@@ -170,7 +170,10 @@ class TestSettingsAccessors(unittest.TestCase):
             ("oauth_grant_type", "client_credentials"),
             ("oauth_client_id", "imio-apps-deliberationsbe"),
             ("oauth_client_secret", "s3cr3t"),
-            ("oauth_token_url", "https://kc.example/realms/sso-apps/protocol/openid-connect/token"),
+            (
+                "oauth_token_url",
+                "https://kc.example/realms/sso-apps/protocol/openid-connect/token",
+            ),
             ("oauth_scope", "profile"),
             ("oauth_client_auth_method", "client_secret_post"),
             ("oauth_username", "svc-account"),
@@ -328,7 +331,9 @@ class TestSyncEnvToRegistry(unittest.TestCase):
         },
         clear=True,
     )
-    def test_sync_env_to_registry_syncs_oauth_credentials(self, mock_commit, mock_set_site):
+    def test_sync_env_to_registry_syncs_oauth_credentials(
+        self, mock_commit, mock_set_site
+    ):
         prefix = "imio.omnia.IOmniaCoreSettings"
         registry = {
             f"{prefix}.oauth_client_id": "",
@@ -344,7 +349,9 @@ class TestSyncEnvToRegistry(unittest.TestCase):
 
         self.assertEqual(registry[f"{prefix}.oauth_client_id"], "my-client")
         self.assertEqual(registry[f"{prefix}.oauth_client_secret"], "my-secret")
-        self.assertEqual(registry[f"{prefix}.oauth_token_url"], "https://kc.example/token")
+        self.assertEqual(
+            registry[f"{prefix}.oauth_token_url"], "https://kc.example/token"
+        )
         self.assertEqual(registry[f"{prefix}.oauth_username"], "svc")
         self.assertEqual(registry[f"{prefix}.oauth_password"], "pw")
         mock_commit.assert_called_once()
@@ -357,12 +364,16 @@ class TestSyncEnvToRegistry(unittest.TestCase):
         {"SITE_ID": "Plone", "SSO_APPS_CLIENT_SECRET": "s3cret"},
         clear=True,
     )
-    def test_sync_env_to_registry_silences_audit_logging(self, mock_commit, mock_set_site):
+    def test_sync_env_to_registry_silences_audit_logging(
+        self, mock_commit, mock_set_site
+    ):
         """Credentials must not reach the fingerpointing audit log."""
         key = "imio.omnia.IOmniaCoreSettings.oauth_client_secret"
         registry = RecordingRegistry({AUDIT_REGISTRY_RECORD: True, key: ""})
         site = DummySite(registry)
-        event, _connection, _database = self._event_for({"Application": {"Plone": site}})
+        event, _connection, _database = self._event_for(
+            {"Application": {"Plone": site}}
+        )
 
         sync_env_to_registry(event)
 
@@ -440,7 +451,9 @@ class TestSyncEnvToRegistry(unittest.TestCase):
             new_callable=PropertyMock,
             side_effect=RuntimeError("broken registry"),
         ):
-            event, connection, _database = self._event_for({"Application": {"Plone": site}})
+            event, connection, _database = self._event_for(
+                {"Application": {"Plone": site}}
+            )
 
             sync_env_to_registry(event)
 

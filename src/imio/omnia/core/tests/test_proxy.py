@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 """Tests for OmniaProxyView."""
+
 import json
 import unittest
 from unittest.mock import MagicMock, patch
@@ -56,8 +57,9 @@ class TestOmniaProxyView(unittest.TestCase):
     def _get_view(self, body=b"", path_segments=None):
         """Instantiate OmniaProxyView directly, bypassing ZPublisher."""
         self.request.BODY = (
-            json.dumps(body).encode() if isinstance(body, dict) else
-            body.encode() if isinstance(body, str) else body
+            json.dumps(body).encode()
+            if isinstance(body, dict)
+            else body.encode() if isinstance(body, str) else body
         )
         view = OmniaProxyView(self.portal, self.request)
         for segment in path_segments or []:
@@ -144,10 +146,12 @@ class TestOmniaProxyView(unittest.TestCase):
         mock_httpx.return_value = mock_resp
 
         set_enable_proxy(True)
-        result = json.loads(self._get_view(
-            body={"input": "some text"},
-            path_segments=["v1", "agents", "improve-text"],
-        )())
+        result = json.loads(
+            self._get_view(
+                body={"input": "some text"},
+                path_segments=["v1", "agents", "improve-text"],
+            )()
+        )
         self.assertEqual(result, {"output": "improved text"})
         self.assertEqual(self.request.response.getStatus(), 200)
 
@@ -163,10 +167,12 @@ class TestOmniaProxyView(unittest.TestCase):
         )
 
         set_enable_proxy(True)
-        result = json.loads(self._get_view(
-            body={"input": "text"},
-            path_segments=["v1", "agents", "improve-text"],
-        )())
+        result = json.loads(
+            self._get_view(
+                body={"input": "text"},
+                path_segments=["v1", "agents", "improve-text"],
+            )()
+        )
         self.assertEqual(self.request.response.getStatus(), 422)
         self.assertIn("error", result)
 
@@ -176,10 +182,12 @@ class TestOmniaProxyView(unittest.TestCase):
         mock_httpx.side_effect = ConnectionError("upstream unreachable")
 
         set_enable_proxy(True)
-        result = json.loads(self._get_view(
-            body={"input": "text"},
-            path_segments=["v1", "agents", "improve-text"],
-        )())
+        result = json.loads(
+            self._get_view(
+                body={"input": "text"},
+                path_segments=["v1", "agents", "improve-text"],
+            )()
+        )
         self.assertEqual(self.request.response.getStatus(), 502)
         self.assertEqual(result, {"error": "Upstream API error"})
 
@@ -224,7 +232,11 @@ class TestSSEStreamIteratorOwnership(unittest.TestCase):
         client = MagicMock()
         response = MagicMock()
         response.iter_bytes.return_value = iter([b"data: {}\n\n"])
-        return SSEStreamIterator(client, response, owns_client=owns_client), client, response
+        return (
+            SSEStreamIterator(client, response, owns_client=owns_client),
+            client,
+            response,
+        )
 
     def test_owned_client_is_closed(self):
         iterator, client, response = self._iterator(owns_client=True)
@@ -287,8 +299,13 @@ class TestOpenAIProxyOAuthMode(unittest.TestCase):
 
     def _call_with_fake_client(self):
         fake_client = MagicMock()
-        fake_client.request.return_value = MagicMock(status_code=200, text='{"ok": true}')
-        with patch("imio.omnia.core.browser.proxy.oauth.get_oauth_client", return_value=fake_client):
+        fake_client.request.return_value = MagicMock(
+            status_code=200, text='{"ok": true}'
+        )
+        with patch(
+            "imio.omnia.core.browser.proxy.oauth.get_oauth_client",
+            return_value=fake_client,
+        ):
             return self._get_view(
                 body={"model": "m", "messages": [], "stream": False},
                 path_segments=["chat", "completions"],
@@ -316,7 +333,10 @@ class TestOpenAIProxyOAuthMode(unittest.TestCase):
         fake_resp = MagicMock(status_code=200, text='{"ok": true}')
         fake_client.request.return_value = fake_resp
 
-        with patch("imio.omnia.core.browser.proxy.oauth.get_oauth_client", return_value=fake_client):
+        with patch(
+            "imio.omnia.core.browser.proxy.oauth.get_oauth_client",
+            return_value=fake_client,
+        ):
             result = self._get_view(
                 body={"model": "m", "messages": [], "stream": False},
                 path_segments=["chat", "completions"],
@@ -328,7 +348,9 @@ class TestOpenAIProxyOAuthMode(unittest.TestCase):
         mock_httpx_request.assert_not_called()
 
     @patch("imio.omnia.core.browser.proxy.httpx2.Client")
-    def test_stream_response_uses_shared_client_without_closing_it(self, mock_httpx_client_cls):
+    def test_stream_response_uses_shared_client_without_closing_it(
+        self, mock_httpx_client_cls
+    ):
         """Streaming proxy calls go through the shared OAuth2 client, with
         its token auth passed explicitly, and never close that client."""
         fake_client = MagicMock()
@@ -336,7 +358,10 @@ class TestOpenAIProxyOAuthMode(unittest.TestCase):
         fake_upstream.raise_for_status.return_value = None
         fake_client.send.return_value = fake_upstream
 
-        with patch("imio.omnia.core.browser.proxy.oauth.get_oauth_client", return_value=fake_client):
+        with patch(
+            "imio.omnia.core.browser.proxy.oauth.get_oauth_client",
+            return_value=fake_client,
+        ):
             result = self._get_view(
                 body={"model": "m", "messages": [], "stream": True},
                 path_segments=["chat", "completions"],
@@ -345,7 +370,9 @@ class TestOpenAIProxyOAuthMode(unittest.TestCase):
         self.assertIsInstance(result, SSEStreamIterator)
         self.assertFalse(result._owns_client)
         fake_client.send.assert_called_once()
-        self.assertEqual(fake_client.send.call_args.kwargs.get("auth"), fake_client.token_auth)
+        self.assertEqual(
+            fake_client.send.call_args.kwargs.get("auth"), fake_client.token_auth
+        )
         fake_client.close.assert_not_called()
         mock_httpx_client_cls.assert_not_called()
 
@@ -367,4 +394,6 @@ class TestOpenAIProxyOAuthMode(unittest.TestCase):
 
         self.assertEqual(self.request.response.getStatus(), 502)
         self.assertIn("error", json.loads(result))
-        self.assertEqual(self.request.response.getHeader("Content-Type"), "application/json")
+        self.assertEqual(
+            self.request.response.getHeader("Content-Type"), "application/json"
+        )

@@ -57,7 +57,9 @@ HTTPX_CLIENT_KWARGS = [
 
 def build_request(url, headers, body, initial_request: Request) -> Request:
     """Make sure that all the data from initial request is passed to the updated object."""
-    updated_request = Request(method=initial_request.method, url=url, headers=headers, content=body)
+    updated_request = Request(
+        method=initial_request.method, url=url, headers=headers, content=body
+    )
     if hasattr(initial_request, "extensions"):
         updated_request.extensions = initial_request.extensions
     return updated_request
@@ -70,9 +72,13 @@ class OAuth2Auth(Auth, TokenAuth):
 
     def auth_flow(self, request: Request) -> typing.Generator[Request, Response, None]:
         try:
-            url, headers, body = self.prepare(str(request.url), request.headers, request.content)
+            url, headers, body = self.prepare(
+                str(request.url), request.headers, request.content
+            )
             headers["Content-Length"] = str(len(body))
-            yield build_request(url=url, headers=headers, body=body, initial_request=request)
+            yield build_request(
+                url=url, headers=headers, body=body, initial_request=request
+            )
         except KeyError as error:
             description = f"Unsupported token_type: {str(error)}"
             raise UnsupportedTokenTypeError(description=description) from error
@@ -82,9 +88,13 @@ class OAuth2ClientAuth(Auth, ClientAuth):
     requires_request_body = True
 
     def auth_flow(self, request: Request) -> typing.Generator[Request, Response, None]:
-        url, headers, body = self.prepare(request.method, str(request.url), request.headers, request.content)
+        url, headers, body = self.prepare(
+            request.method, str(request.url), request.headers, request.content
+        )
         headers["Content-Length"] = str(len(body))
-        yield build_request(url=url, headers=headers, body=body, initial_request=request)
+        yield build_request(
+            url=url, headers=headers, body=body, initial_request=request
+        )
 
 
 class OAuth2Client(_OAuth2Client, httpx2.Client):
@@ -133,7 +143,9 @@ class OAuth2Client(_OAuth2Client, httpx2.Client):
     def handle_error(error_type, error_description):
         raise OAuthError(error_type, error_description)
 
-    def request(self, method, url, withhold_token=False, auth=USE_CLIENT_DEFAULT, **kwargs):
+    def request(
+        self, method, url, withhold_token=False, auth=USE_CLIENT_DEFAULT, **kwargs
+    ):
         if not withhold_token and auth is USE_CLIENT_DEFAULT:
             if not self.token:
                 raise MissingTokenError()
@@ -142,7 +154,9 @@ class OAuth2Client(_OAuth2Client, httpx2.Client):
             auth = self.token_auth
         return super().request(method, url, auth=auth, **kwargs)
 
-    def stream(self, method, url, withhold_token=False, auth=USE_CLIENT_DEFAULT, **kwargs):
+    def stream(
+        self, method, url, withhold_token=False, auth=USE_CLIENT_DEFAULT, **kwargs
+    ):
         if not withhold_token and auth is USE_CLIENT_DEFAULT:
             if not self.token:
                 raise MissingTokenError()
@@ -182,14 +196,17 @@ def _validate_config(cfg):
         required += ["oauth_username", "oauth_password"]
     missing = [name for name in required if not cfg[name]]
     if missing:
-        raise ValueError("Incomplete OAuth2 configuration, missing: " + ", ".join(missing))
+        raise ValueError(
+            "Incomplete OAuth2 configuration, missing: " + ", ".join(missing)
+        )
 
 
 def _build_client(cfg):
     return OAuth2Client(
         client_id=cfg["oauth_client_id"],
         client_secret=cfg["oauth_client_secret"],
-        token_endpoint_auth_method=cfg["oauth_client_auth_method"] or "client_secret_basic",
+        token_endpoint_auth_method=cfg["oauth_client_auth_method"]
+        or "client_secret_basic",
         scope=cfg["oauth_scope"] or None,
         token_endpoint=cfg["oauth_token_url"],
         grant_type=cfg["oauth_grant_type"] or "password",
@@ -219,7 +236,9 @@ def _ensure_token(client, cfg):
         refresh_token = client.token.get("refresh_token")
         try:
             if refresh_token:
-                client.refresh_token(cfg["oauth_token_url"], refresh_token=refresh_token)
+                client.refresh_token(
+                    cfg["oauth_token_url"], refresh_token=refresh_token
+                )
             else:
                 _fetch_token(client, cfg)
         except OAuthError:

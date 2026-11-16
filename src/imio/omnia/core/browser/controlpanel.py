@@ -36,8 +36,16 @@ GRANT_TYPES = SimpleVocabulary(
 
 CLIENT_AUTH_METHODS = SimpleVocabulary(
     [
-        SimpleTerm("client_secret_basic", "client_secret_basic", _("Basic header (client_secret_basic)")),
-        SimpleTerm("client_secret_post", "client_secret_post", _("Request body (client_secret_post)")),
+        SimpleTerm(
+            "client_secret_basic",
+            "client_secret_basic",
+            _("Basic header (client_secret_basic)"),
+        ),
+        SimpleTerm(
+            "client_secret_post",
+            "client_secret_post",
+            _("Request body (client_secret_post)"),
+        ),
     ]
 )
 
@@ -74,14 +82,18 @@ class IOmniaCoreSettings(Interface):
 
     enable_proxy = schema.Bool(
         title=_("Enable Omnia API proxy"),
-        description=_("Expose @@omnia-api endpoint. Access is controlled by permissions."),
+        description=_(
+            "Expose @@omnia-api endpoint. Access is controlled by permissions."
+        ),
         required=False,
         default=False,
     )
 
     enable_openai_proxy = schema.Bool(
         title=_("Enable OpenAI API proxy"),
-        description=_("Expose @@omnia-openai-api endpoint. Access is controlled by permissions."),
+        description=_(
+            "Expose @@omnia-openai-api endpoint. Access is controlled by permissions."
+        ),
         required=False,
         default=False,
     )
@@ -114,7 +126,9 @@ class IOmniaCoreSettings(Interface):
 
     openai_api_key = schema.TextLine(
         title=_("OpenAI API Key"),
-        description=_('Sent as a Bearer token when the OpenAI gateway authentication is "Static API key".'),
+        description=_(
+            'Sent as a Bearer token when the OpenAI gateway authentication is "Static API key".'
+        ),
         required=False,
     )
 
@@ -137,7 +151,9 @@ class IOmniaCoreSettings(Interface):
 
     oauth_token_url = schema.TextLine(
         title=_("OAuth 2.0 token endpoint URL"),
-        description=_("E.g. https://<keycloak>/realms/sso-apps/protocol/openid-connect/token."),
+        description=_(
+            "E.g. https://<keycloak>/realms/sso-apps/protocol/openid-connect/token."
+        ),
         required=False,
     )
 
@@ -198,4 +214,6 @@ class OmniaCoreControlPanelFormWrapper(ControlPanelFormWrapper):
         return self.tabs[0] if self.tabs else None
 
 
-OmniaCoreControlPanelView = layout.wrap_form(OmniaCoreControlPanelForm, OmniaCoreControlPanelFormWrapper)
+OmniaCoreControlPanelView = layout.wrap_form(
+    OmniaCoreControlPanelForm, OmniaCoreControlPanelFormWrapper
+)

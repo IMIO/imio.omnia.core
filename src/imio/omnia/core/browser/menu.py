@@ -7,6 +7,7 @@ from zope.interface import implementer
 from imio.omnia.core.interfaces import IOmniaActionsProvider
 from imio.omnia.core import _
 
+
 class IOmniaActionsMenu(IBrowserMenu):
     """The menu item linking to the actions menu."""
 
@@ -45,7 +46,6 @@ class OmniaActionsSubMenuItem(BrowserSubMenuItem):
 
 @implementer(IOmniaActionsMenu)
 class OmniaActionsMenu(BrowserMenu):
-
 
     def getMenuItems(self, context, request):
         """Return menu item entries in a TAL-friendly form."""

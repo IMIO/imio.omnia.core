@@ -12,7 +12,11 @@ from zope.interface import implementer
 from zope.publisher.interfaces.browser import IBrowserRequest
 
 from imio.omnia.core import oauth
-from imio.omnia.core.interfaces import IOrganizationIDProvider, IOmniaCoreAPIService, IOmniaOpenAIService
+from imio.omnia.core.interfaces import (
+    IOrganizationIDProvider,
+    IOmniaCoreAPIService,
+    IOmniaOpenAIService,
+)
 from imio.omnia.core.settings import (
     get_api_timeout,
     get_application_id,
@@ -57,7 +61,9 @@ class BaseOmniaService:
         return self._auth_type() == "oauth2"
 
     def _log_request(self, path, duration_ms, exc=None, extra=""):
-        segment = path.rstrip("/").rsplit("/", 1)[-1] or path  # We'll keep just the action to keep the log shorter
+        segment = (
+            path.rstrip("/").rsplit("/", 1)[-1] or path
+        )  # We'll keep just the action to keep the log shorter
         action = f"omnia.{segment}"
         details = f"duration_ms={duration_ms}"
         if extra:
@@ -66,7 +72,9 @@ class BaseOmniaService:
         if isinstance(exc, httpx2.HTTPStatusError):
             logger.warning("Omnia API HTTP error: %s %s", action, details)
         elif exc is not None:
-            logger.error("Omnia API unexpected error: %s %s", action, details, exc_info=exc)
+            logger.error(
+                "Omnia API unexpected error: %s %s", action, details, exc_info=exc
+            )
 
     def send(self, method, path, **kwargs):
         url = f"{self.base_url}{path}"
@@ -79,9 +87,13 @@ class BaseOmniaService:
         try:
             if self._use_oauth():
                 client = oauth.get_oauth_client()
-                response = client.request(method, url, headers=headers, timeout=self.api_timeout, **kwargs)
+                response = client.request(
+                    method, url, headers=headers, timeout=self.api_timeout, **kwargs
+                )
             else:
-                response = httpx2.request(method, url, headers=headers, timeout=self.api_timeout, **kwargs)
+                response = httpx2.request(
+                    method, url, headers=headers, timeout=self.api_timeout, **kwargs
+                )
             response.raise_for_status()
             return response.json()
         except httpx2.HTTPStatusError as exc:
@@ -94,7 +106,12 @@ class BaseOmniaService:
             raise
         finally:
             duration_ms = round((time.monotonic() - start) * 1000)
-            self._log_request(path, duration_ms, exc=current_exc, extra=f"input_len={input_len}{error_extra}")
+            self._log_request(
+                path,
+                duration_ms,
+                exc=current_exc,
+                extra=f"input_len={input_len}{error_extra}",
+            )
 
     def post_json(self, path, payload):
         return self.send("POST", path, json=payload)
@@ -245,7 +262,9 @@ class OmniaOpenAIService(BaseOmniaService):
                     "POST", url, headers=headers, json=payload, timeout=self.api_timeout
                 )
             else:
-                stream_cm = httpx2.stream("POST", url, headers=headers, json=payload, timeout=self.api_timeout)
+                stream_cm = httpx2.stream(
+                    "POST", url, headers=headers, json=payload, timeout=self.api_timeout
+                )
             with stream_cm as response:
                 response.raise_for_status()
                 yield from self._iter_sse(response)
@@ -260,7 +279,10 @@ class OmniaOpenAIService(BaseOmniaService):
         finally:
             duration_ms = round((time.monotonic() - start) * 1000)
             self._log_request(
-                path, duration_ms, exc=current_exc, extra=f"input_len={input_len} streaming=true{error_extra}"
+                path,
+                duration_ms,
+                exc=current_exc,
+                extra=f"input_len={input_len} streaming=true{error_extra}",
             )
 
     @staticmethod

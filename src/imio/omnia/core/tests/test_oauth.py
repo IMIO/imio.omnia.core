@@ -44,7 +44,9 @@ class TestOAuth2ClientPort(unittest.TestCase):
             return token_response()
 
         client = self._client(handler)
-        token = client.fetch_token(TOKEN_URL, grant_type="password", username="svc", password="pw")
+        token = client.fetch_token(
+            TOKEN_URL, grant_type="password", username="svc", password="pw"
+        )
 
         self.assertEqual(token["access_token"], "tok-1")
         request = seen[0]

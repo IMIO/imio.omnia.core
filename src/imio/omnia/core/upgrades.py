@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 """GenericSetup upgrade steps."""
+
 import logging
 
 from plone.registry.interfaces import IRegistry
@@ -12,7 +13,9 @@ logger = logging.getLogger(__name__)
 
 def upgrade_1000_to_1001(context):
     """Create the OAuth 2.0 registry records and make oauth2 the default scheme."""
-    context.runImportStepFromProfile("profile-imio.omnia.core:default", "plone.app.registry")
+    context.runImportStepFromProfile(
+        "profile-imio.omnia.core:default", "plone.app.registry"
+    )
     registry = getUtility(IRegistry)
     for field in ("core_auth_type", "openai_auth_type"):
         key = f"{REGISTRY_PREFIX}.{field}"

@@ -21,13 +21,15 @@ class ImioOmniaCoreLayer(PloneSandboxLayer):
         # The z3c.autoinclude feature is disabled in the Plone fixture base
         # layer.
         import plone.app.dexterity
+
         self.loadZCML(package=plone.app.dexterity)
         import plone.restapi
+
         self.loadZCML(package=plone.restapi)
         self.loadZCML(package=imio.omnia.core)
 
     def setUpPloneSite(self, portal):
-        applyProfile(portal, 'imio.omnia.core:default')
+        applyProfile(portal, "imio.omnia.core:default")
 
 
 IMIO_OMNIA_CORE_FIXTURE = ImioOmniaCoreLayer()
@@ -35,13 +37,13 @@ IMIO_OMNIA_CORE_FIXTURE = ImioOmniaCoreLayer()
 
 IMIO_OMNIA_CORE_INTEGRATION_TESTING = IntegrationTesting(
     bases=(IMIO_OMNIA_CORE_FIXTURE,),
-    name='ImioOmniaCoreLayer:IntegrationTesting',
+    name="ImioOmniaCoreLayer:IntegrationTesting",
 )
 
 
 IMIO_OMNIA_CORE_FUNCTIONAL_TESTING = FunctionalTesting(
     bases=(IMIO_OMNIA_CORE_FIXTURE,),
-    name='ImioOmniaCoreLayer:FunctionalTesting',
+    name="ImioOmniaCoreLayer:FunctionalTesting",
 )
 
 
@@ -51,5 +53,5 @@ IMIO_OMNIA_CORE_ACCEPTANCE_TESTING = FunctionalTesting(
         REMOTE_LIBRARY_BUNDLE_FIXTURE,
         z2.ZSERVER_FIXTURE,
     ),
-    name='ImioOmniaCoreLayer:AcceptanceTesting',
+    name="ImioOmniaCoreLayer:AcceptanceTesting",
 )

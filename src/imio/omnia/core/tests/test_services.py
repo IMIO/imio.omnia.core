@@ -358,7 +358,9 @@ class TestServicesOAuthMode(unittest.TestCase):
         set_core_auth_type("oauth2")
         set_openai_auth_type("oauth2")
         set_setting("core_api_url", "https://omnia.test.imio.be/imio/omnia/core")
-        set_setting("openai_api_url", "https://omnia.test.imio.be/imio/omnia/llm/gateway/v1")
+        set_setting(
+            "openai_api_url", "https://omnia.test.imio.be/imio/omnia/llm/gateway/v1"
+        )
         set_setting("openai_extra_headers", {})
         set_application_id("omnia-app")
         set_organization_id("namur")
@@ -387,7 +389,11 @@ class TestServicesOAuthMode(unittest.TestCase):
         if str(request.url) == "https://kc.example/token":
             return httpx2.Response(
                 200,
-                json={"access_token": "tok-1", "token_type": "Bearer", "expires_in": 300},
+                json={
+                    "access_token": "tok-1",
+                    "token_type": "Bearer",
+                    "expires_in": 300,
+                },
             )
         return httpx2.Response(200, json={"ok": True})
 
@@ -451,14 +457,18 @@ class TestServicesOAuthMode(unittest.TestCase):
 
         with self._patched_build():
             core_service = OmniaCoreAPIService(self.portal, self.request)
-            core_result = core_service.post_json("/v1/agents/improve-text", {"input": "hi"})
+            core_result = core_service.post_json(
+                "/v1/agents/improve-text", {"input": "hi"}
+            )
 
         self.assertEqual(core_result, {"ok": True})
         self.assertEqual(self.calls[-1].headers["Authorization"], "Bearer tok-1")
 
         openai_service = OmniaOpenAIService(self.portal, self.request)
         self.assertFalse(openai_service._use_oauth())
-        self.assertEqual(openai_service._headers().get("Authorization"), "Bearer static-key")
+        self.assertEqual(
+            openai_service._headers().get("Authorization"), "Bearer static-key"
+        )
 
     def test_openai_none_auth_sends_no_authorization_header(self):
         """openai_auth_type=none must send no Authorization header at all,
@@ -476,7 +486,11 @@ class TestServicesOAuthMode(unittest.TestCase):
             if str(request.url) == "https://kc.example/token":
                 return httpx2.Response(
                     200,
-                    json={"access_token": "tok-1", "token_type": "Bearer", "expires_in": 300},
+                    json={
+                        "access_token": "tok-1",
+                        "token_type": "Bearer",
+                        "expires_in": 300,
+                    },
                 )
             return httpx2.Response(
                 200,
@@ -493,7 +507,11 @@ class TestServicesOAuthMode(unittest.TestCase):
 
         with patch.object(oauth, "_build_client", build):
             service = OmniaOpenAIService(self.portal, self.request)
-            chunks = list(service.chat_completions("m", [{"role": "user", "content": "hi"}], stream=True))
+            chunks = list(
+                service.chat_completions(
+                    "m", [{"role": "user", "content": "hi"}], stream=True
+                )
+            )
 
         self.assertEqual(chunks, [{"id": "1"}])
         self.assertEqual(self.calls[-1].headers["Authorization"], "Bearer tok-1")

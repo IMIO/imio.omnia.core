@@ -25,7 +25,6 @@ from imio.omnia.core.settings import get_enable_openai_proxy
 from imio.omnia.core.settings import get_enable_proxy
 from imio.omnia.core.settings import get_openai_api_url
 
-
 logger = logging.getLogger(__name__)
 
 
@@ -71,9 +70,7 @@ class OmniaProxyView(BrowserView):
             self.request.response.setStatus(400)
             return json.dumps({"error": "Invalid JSON body"})
 
-        service = getMultiAdapter(
-            (self.context, self.request), IOmniaCoreAPIService
-        )
+        service = getMultiAdapter((self.context, self.request), IOmniaCoreAPIService)
 
         try:
             result = service.post_json(path, payload=body)
@@ -81,10 +78,15 @@ class OmniaProxyView(BrowserView):
             self.request.response.setStatus(exc.response.status_code)
             return json.dumps({"error": str(exc)})
         except httpx2.TimeoutException:
-            self.request.response.setStatus(504, reason=translate(
-                _("The Omnia API is not responding. Try a smaller context or try again later."),
-                context=self.request
-            ))
+            self.request.response.setStatus(
+                504,
+                reason=translate(
+                    _(
+                        "The Omnia API is not responding. Try a smaller context or try again later."
+                    ),
+                    context=self.request,
+                ),
+            )
             return json.dumps({"error": "Upstream API timeout"})
         except Exception:
             logger.exception("Omnia proxy error")
@@ -229,9 +231,7 @@ class OmniaOpenAIProxyView(BrowserView):
         url = f"{openai_url.rstrip('/')}{path}"
         is_streaming = body.get("stream", False)
 
-        service = getMultiAdapter(
-            (self.context, self.request), IOmniaOpenAIService
-        )
+        service = getMultiAdapter((self.context, self.request), IOmniaOpenAIService)
         self.service = service
         headers = service._headers()
         headers["Content-Type"] = "application/json"
@@ -267,7 +267,9 @@ class OmniaOpenAIProxyView(BrowserView):
         owns_client = False
         try:
             client, owns_client, send_auth = self._get_upstream_client(timeout=120.0)
-            req = client.build_request("POST", url, headers=headers, json=body, timeout=120.0)
+            req = client.build_request(
+                "POST", url, headers=headers, json=body, timeout=120.0
+            )
             upstream = client.send(req, stream=True, auth=send_auth)
             upstream.raise_for_status()
             return SSEStreamIterator(client, upstream, owns_client=owns_client)
@@ -301,9 +303,13 @@ class OmniaOpenAIProxyView(BrowserView):
         try:
             if self.service._use_oauth():
                 client = oauth.get_oauth_client()
-                resp = client.request("POST", url, headers=headers, json=body, timeout=60.0)
+                resp = client.request(
+                    "POST", url, headers=headers, json=body, timeout=60.0
+                )
             else:
-                resp = httpx2.request("POST", url, headers=headers, json=body, timeout=60.0)
+                resp = httpx2.request(
+                    "POST", url, headers=headers, json=body, timeout=60.0
+                )
             self.request.response.setStatus(resp.status_code)
             return resp.text
         except httpx2.HTTPStatusError as exc:

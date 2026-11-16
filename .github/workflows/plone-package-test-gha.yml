@@ -15,5 +15,5 @@ jobs:
       buildout_config_file: test_plone62.cfg
       requirements_file: requirements-6.2.txt
       python_versions: '["3.12", "3.13"]'
-      runner_label: gha-runners
+      runner_label: gha-runners-smartweb
       test_command: TZ=UTC bin/test

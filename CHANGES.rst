@@ -5,6 +5,10 @@ Changelog
 1.4 (unreleased)
 ----------------
 
+- Fix ``test_sync_env_to_registry_ignores_vocabulary_fields``: the database is
+  not opened when no env var is synced, so the connection is not closed.
+  [boulch]
+
 - Add a GitHub Actions workflow that runs the tests on Plone 6.2.
   [boulch]
 

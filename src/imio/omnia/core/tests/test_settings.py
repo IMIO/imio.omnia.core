@@ -390,7 +390,9 @@ class TestSyncEnvToRegistry(unittest.TestCase):
         },
         clear=True,
     )
-    def test_sync_env_to_registry_ignores_vocabulary_fields(self, mock_commit, mock_set_site):
+    def test_sync_env_to_registry_ignores_vocabulary_fields(
+        self, mock_commit, mock_set_site
+    ):
         """Vocabulary-backed fields are not env-configurable, so typos can't be persisted."""
         prefix = "imio.omnia.IOmniaCoreSettings"
         registry = {
@@ -401,17 +403,20 @@ class TestSyncEnvToRegistry(unittest.TestCase):
             f"{prefix}.oauth_scope": "",
         }
         site = DummySite(registry)
-        event, connection, _database = self._event_for({"Application": {"Plone": site}})
+        event, _connection, database = self._event_for({"Application": {"Plone": site}})
 
         sync_env_to_registry(event)
 
         self.assertEqual(registry[f"{prefix}.core_auth_type"], "oauth2")
         self.assertEqual(registry[f"{prefix}.openai_auth_type"], "oauth2")
         self.assertEqual(registry[f"{prefix}.oauth_grant_type"], "password")
-        self.assertEqual(registry[f"{prefix}.oauth_client_auth_method"], "client_secret_basic")
+        self.assertEqual(
+            registry[f"{prefix}.oauth_client_auth_method"], "client_secret_basic"
+        )
         self.assertEqual(registry[f"{prefix}.oauth_scope"], "")
         mock_commit.assert_not_called()
-        self.assertTrue(connection.closed)
+        # None of these env vars is synced: the database is never opened
+        self.assertEqual(database.open_calls, 0)
 
     @patch("imio.omnia.core.settings.logger.exception")
     @patch("imio.omnia.core.settings.transaction.abort")

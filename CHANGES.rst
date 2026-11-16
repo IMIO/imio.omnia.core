@@ -5,7 +5,8 @@ Changelog
 1.4 (unreleased)
 ----------------
 
-- Nothing changed yet.
+- Add ``test_plone62.cfg`` and ``requirements-6.2.txt`` to test on Plone 6.2.
+  [boulch]
 
 
 1.3 (2026-10-09)

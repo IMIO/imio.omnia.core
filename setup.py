@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 """Installer for the imio.omnia.core package."""
 
-from setuptools import find_namespace_packages
 from setuptools import setup
 
 long_description = "\n\n".join(
@@ -41,13 +40,10 @@ setup(
         # 'Documentation': 'https://imio.omnia.core.readthedocs.io/en/latest/',
     },
     license="GPL version 2",
-    packages=find_namespace_packages("src", exclude=["ez_setup"]),
-    package_dir={"": "src"},
     include_package_data=True,
     zip_safe=False,
     python_requires=">=3.12",
     install_requires=[
-        "setuptools",
         # -*- Extra requirements: -*-
         "z3c.jbot",
         "plone.api>=1.8.4",

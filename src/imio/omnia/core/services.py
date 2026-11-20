@@ -1,5 +1,6 @@
 import json
 import logging
+import os
 import time
 from urllib.parse import urlparse
 import httpx2
@@ -22,6 +23,34 @@ from imio.omnia.core.settings import (
 )
 
 logger = logging.getLogger(__name__)
+
+# Timeout in seconds of an OCR call. The Omnia Core API stops an OCR call after 300 seconds.
+# The margin lets the client receive that answer.
+OCR_TIMEOUT = 330
+
+
+def _upload_size(files):
+    """Return the total size in bytes of the uploads in ``files``.
+
+    ``files`` has the format of the httpx2 ``files`` argument.
+    An upload with an unknown size counts as zero.
+    """
+    if not files:
+        return 0
+    values = files.values() if isinstance(files, dict) else [value for _name, value in files]
+    total = 0
+    for value in values:
+        content = value[1] if isinstance(value, tuple) else value
+        if isinstance(content, (bytes, str)):
+            total += len(content)
+            continue
+        try:
+            position = content.tell()
+            total += content.seek(0, os.SEEK_END)
+            content.seek(position)
+        except (AttributeError, OSError, ValueError):
+            pass
+    return total
 
 
 class BaseOmniaService:
@@ -68,20 +97,23 @@ class BaseOmniaService:
         elif exc is not None:
             logger.error("Omnia API unexpected error: %s %s", action, details, exc_info=exc)
 
-    def send(self, method, path, **kwargs):
+    def send(self, method, path, timeout=None, **kwargs):
         url = f"{self.base_url}{path}"
         headers = {**self._headers(), **kwargs.pop("headers", {})}
+        if timeout is None:
+            timeout = self.api_timeout
         payload = kwargs.get("json") or kwargs.get("data")
-        input_len = len(str(payload)) if payload else 0
+        # The audit log gets sizes only. It does not get the payload or the file names.
+        input_len = (len(str(payload)) if payload else 0) + _upload_size(kwargs.get("files"))
         start = time.monotonic()
         error_extra = ""
         current_exc = None
         try:
             if self._use_oauth():
                 client = oauth.get_oauth_client()
-                response = client.request(method, url, headers=headers, timeout=self.api_timeout, **kwargs)
+                response = client.request(method, url, headers=headers, timeout=timeout, **kwargs)
             else:
-                response = httpx2.request(method, url, headers=headers, timeout=self.api_timeout, **kwargs)
+                response = httpx2.request(method, url, headers=headers, timeout=timeout, **kwargs)
             response.raise_for_status()
             return response.json()
         except httpx2.HTTPStatusError as exc:
@@ -161,6 +193,104 @@ class OmniaCoreAPIService(BaseOmniaService):
             "/v1/agents/deduce-metadata",
             data=data,
             files=files or None,
+        )
+
+    def _ocr(
+        self,
+        path,
+        data,
+        file=None,
+        document_url=None,
+        pages=None,
+        extract_header_footer=False,
+        table_format=None,
+        image_descriptions=False,
+        confidence=False,
+        timeout=None,
+    ):
+        """Send an OCR request and return the parsed JSON.
+
+        ``data`` holds the form fields that are specific to the endpoint.
+        An option that keeps its default value is not sent.
+        """
+        if (file is None) == (document_url is None):
+            raise ValueError("Give exactly one of file and document_url")
+        if document_url is not None:
+            data["document_url"] = document_url
+        if pages is not None:
+            data["pages"] = pages
+        if extract_header_footer:
+            data["extract_header_footer"] = "true"
+        if table_format is not None:
+            data["table_format"] = table_format
+        if image_descriptions:
+            data["image_descriptions"] = "true"
+        if confidence:
+            data["confidence"] = "true"
+        return self.send(
+            "POST",
+            path,
+            timeout=OCR_TIMEOUT if timeout is None else timeout,
+            data=data,
+            files={"file": file} if file is not None else None,
+        )
+
+    def ocr_markdown(
+        self,
+        file=None,
+        document_url=None,
+        pages=None,
+        extract_header_footer=False,
+        table_format=None,
+        image_descriptions=False,
+        confidence=False,
+        timeout=None,
+    ):
+        return self._ocr(
+            "/v1/ocr/markdown",
+            {},
+            file=file,
+            document_url=document_url,
+            pages=pages,
+            extract_header_footer=extract_header_footer,
+            table_format=table_format,
+            image_descriptions=image_descriptions,
+            confidence=confidence,
+            timeout=timeout,
+        )
+
+    def ocr_extractions(
+        self,
+        output_schema,
+        file=None,
+        document_url=None,
+        strict=True,
+        instructions=None,
+        pages=None,
+        extract_header_footer=False,
+        table_format=None,
+        image_descriptions=False,
+        confidence=False,
+        timeout=None,
+    ):
+        if not isinstance(output_schema, str):
+            output_schema = json.dumps(output_schema)
+        data = {"output_schema": output_schema}
+        if not strict:
+            data["strict"] = "false"
+        if instructions is not None:
+            data["instructions"] = instructions
+        return self._ocr(
+            "/v1/ocr/extractions",
+            data,
+            file=file,
+            document_url=document_url,
+            pages=pages,
+            extract_header_footer=extract_header_footer,
+            table_format=table_format,
+            image_descriptions=image_descriptions,
+            confidence=confidence,
+            timeout=timeout,
         )
 
 

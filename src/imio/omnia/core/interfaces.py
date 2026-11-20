@@ -34,8 +34,11 @@ class IOmniaCoreAPIService(Interface):
     See the ``/imio/omnia/core/docs`` OpenAPI page on the iMio API gateway.
     """
 
-    def send(method, path, **kwargs):
-        """Send a raw HTTP request to the upstream API and return parsed JSON."""
+    def send(method, path, timeout=None, **kwargs):
+        """Send a raw HTTP request to the upstream API and return parsed JSON.
+
+        ``timeout`` is in seconds. The default is the ``api_timeout`` registry setting.
+        """
 
     def post_json(path, **kwargs):
         """Send a raw POST HTTP request to the upstream API and return parsed JSON."""
@@ -69,6 +72,57 @@ class IOmniaCoreAPIService(Interface):
 
     def deduce_metadata(input=None, image_url=None, image_file=None):
         """Extract title, description and keywords from text/image."""
+
+    def ocr_markdown(
+        file=None,
+        document_url=None,
+        pages=None,
+        extract_header_footer=False,
+        table_format=None,
+        image_descriptions=False,
+        confidence=False,
+        timeout=None,
+    ):
+        """Convert a document to Markdown with OCR.
+
+        Give exactly one of ``file`` and ``document_url``.
+        ``file`` is a ``(filename, content, content_type)`` tuple.
+        ``content`` is bytes or a binary file object.
+        ``document_url`` is a public https URL.
+        ``pages`` is a zero-based range string, for example ``"0-4,7"``.
+        ``table_format`` is ``"markdown"`` or ``"html"``.
+        ``timeout`` is in seconds. The default is 330 seconds.
+        The API does not get an option that keeps its default value.
+
+        Return a dict with the keys ``markdown``, ``pages``, ``page_count`` and ``model``.
+        Raise ``ValueError`` if the call does not give exactly one document source.
+        """
+
+    def ocr_extractions(
+        output_schema,
+        file=None,
+        document_url=None,
+        strict=True,
+        instructions=None,
+        pages=None,
+        extract_header_footer=False,
+        table_format=None,
+        image_descriptions=False,
+        confidence=False,
+        timeout=None,
+    ):
+        """Extract structured data from a document with OCR.
+
+        ``output_schema`` is a JSON Schema of type object.
+        It is a dict or a JSON string.
+        ``strict`` makes the result obey the schema exactly.
+        ``instructions`` is an optional text of 2000 characters maximum.
+        The other parameters are the same as for ``ocr_markdown``.
+
+        Return the ``ocr_markdown`` dict with one more key, ``data``.
+        ``data`` holds the extracted object.
+        Raise ``ValueError`` if the call does not give exactly one document source.
+        """
 
 
 class IOmniaOpenAIService(Interface):

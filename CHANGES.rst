@@ -5,7 +5,11 @@ Changelog
 1.4 (unreleased)
 ----------------
 
-- Nothing changed yet.
+- DELIBE-321: Add ``ocr_markdown`` and ``ocr_extractions`` to
+  ``IOmniaCoreAPIService`` (Omnia Core OCR endpoints), with a default timeout
+  of 330 seconds, and an optional per-call ``timeout`` to ``send``. The audit
+  log ``input_len`` now includes the size of uploaded files.
+  [aduchene]
 
 
 1.3 (2026-10-09)

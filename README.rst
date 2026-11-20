@@ -285,7 +285,8 @@ on ``(context, request)`` and automatically send ``x-imio-application`` and
 IOmniaCoreAPIService
 ~~~~~~~~~~~~~~~~~~~~
 
-Wraps the Omnia Core AI agents API (``/imio/omnia/core/v1/agents/``).
+Wraps the Omnia Core AI agents API (``/imio/omnia/core/v1/agents/``) and the
+Omnia Core OCR API (``/imio/omnia/core/v1/ocr/``).
 
 Available methods:
 
@@ -299,7 +300,9 @@ Available methods:
 - ``convert_meeting_notes_to_minutes(meeting_name, meeting_notes)``
 - ``categorize_content(input, vocabulary, unique=False)``
 - ``deduce_metadata(input=None, image_url=None, image_file=None)``
-- ``send(method, path, **kwargs)`` / ``post_json(path, payload)`` for raw calls
+- ``ocr_markdown(file=None, document_url=None, pages=None, extract_header_footer=False, table_format=None, image_descriptions=False, confidence=False, timeout=None)``
+- ``ocr_extractions(output_schema, file=None, document_url=None, strict=True, instructions=None, pages=None, extract_header_footer=False, table_format=None, image_descriptions=False, confidence=False, timeout=None)``
+- ``send(method, path, timeout=None, **kwargs)`` / ``post_json(path, payload)`` for raw calls
 
 Usage::
 
@@ -309,6 +312,73 @@ Usage::
     service = getMultiAdapter((context, request), IOmniaCoreAPIService)
     result = service.improve_text("Le projet va bien.")
     # result is a parsed JSON dict from the upstream API
+
+Every call uses the ``api_timeout`` registry setting (30 seconds by default).
+``send`` accepts a ``timeout`` in seconds for one call.
+
+OCR
++++
+
+``ocr_markdown`` converts a document to Markdown. ``ocr_extractions`` also
+extracts structured data that follows a JSON Schema. Both take exactly one
+document source and raise ``ValueError`` otherwise:
+
+- ``file``: a ``(filename, content, content_type)`` tuple, where ``content``
+  is bytes or a binary file object (50 MB maximum);
+- ``document_url``: a public https URL.
+
+Options:
+
+- ``pages``: zero-based page ranges, for example ``"0-4,7"``;
+- ``extract_header_footer``, ``image_descriptions``, ``confidence``: booleans;
+- ``table_format``: ``"markdown"`` or ``"html"``;
+- ``output_schema`` (``ocr_extractions`` only): a JSON Schema of type object,
+  as a dict or as a JSON string;
+- ``strict`` (``ocr_extractions`` only): make the result follow the schema
+  exactly (default ``True``);
+- ``instructions`` (``ocr_extractions`` only): extraction instructions, 2000
+  characters maximum;
+- ``timeout``: seconds. An OCR call can last several minutes, so the default
+  is 330 seconds (``imio.omnia.core.services.OCR_TIMEOUT``) and not the
+  ``api_timeout`` registry setting.
+
+An option left at its default value is not sent to the API.
+
+Usage::
+
+    with open("/path/to/report.pdf", "rb") as pdf:
+        result = service.ocr_markdown(
+            file=("report.pdf", pdf, "application/pdf"),
+            pages="0-4",
+        )
+    result["markdown"]    # Markdown of the whole document
+    result["pages"]       # [{"index", "markdown", "header", "footer", "confidence"}, ...]
+    result["page_count"]
+    result["model"]
+
+    result = service.ocr_extractions(
+        {
+            "type": "object",
+            "properties": {"total": {"type": "number"}},
+            "required": ["total"],
+        },
+        document_url="https://example.org/invoice.pdf",
+        instructions="Read the total amount of the invoice.",
+    )
+    result["data"]        # {"total": 1250.0}
+
+Errors are raised as ``httpx2.HTTPStatusError``: 413 (document too large),
+422 (bad input, or the OCR provider refused the document or the schema), 502,
+503 and 504 (the OCR provider did not answer in time). A call that exceeds
+``timeout`` raises ``httpx2.TimeoutException``.
+
+A result needs two checks before a page shows it:
+
+- The API can answer without an error and without text. A damaged PDF file
+  gives pages with an empty ``markdown``.
+- The Markdown is the output of the OCR model. It can contain the HTML code
+  that the document shows, for example an ``iframe`` tag. Sanitise the HTML
+  that you make from it.
 
 IOmniaOpenAIService
 ~~~~~~~~~~~~~~~~~~~
